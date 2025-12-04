@@ -4,6 +4,7 @@ import pg from 'pg';
 import 'dotenv/config'; // Loads .env file (though Docker will handle most in this setup)
 import { initializeSchema } from './db/schema.js';
 import { setupAuthRoutes } from './routes/auth.js';
+import { setupUserRoutes } from './routes/user.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -39,6 +40,9 @@ async function setupDatabase() {
 }
 // Setup authentication routes
 setupAuthRoutes(app, dbClient);
+
+// Setup user routes
+setupUserRoutes(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {

@@ -41,7 +41,7 @@ export function setupAuthRoutes(app, dbClient) {
       }
 
       const result = await dbClient.query(
-        'SELECT user_id, username, email FROM users WHERE username = $1 AND password_hash = $2',
+        'SELECT user_id, username, email, balance FROM users WHERE username = $1 AND password_hash = $2',
         [username, password]
       );
 
@@ -58,4 +58,5 @@ export function setupAuthRoutes(app, dbClient) {
       res.status(500).json({ message: 'Login failed.' });
     }
   });
+
 }

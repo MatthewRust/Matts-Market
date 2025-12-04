@@ -9,6 +9,7 @@ import Layout from "./layout/Layout";
 import Home from "./pages/Home";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
+import Wallet from "./pages/privatePages/userPages/Wallet";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/wallet" element={<Wallet />} />
           </Routes>
         </Layout>
       </Router>

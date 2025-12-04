@@ -30,6 +30,10 @@ const Home = () => {
             <Button variant="outline" onClick={handleSignOut}>
               Sign Out
             </Button>
+
+            <Button variant="outline" onClick={() => navigate("/wallet")}>
+                Wallet
+            </Button>
           </>
         ) : (
           <>
