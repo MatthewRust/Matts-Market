@@ -34,7 +34,6 @@ const Login = () => {
       });
 
       if (response.status === 200) {
-        // Store user data or token if needed
         localStorage.setItem("user", JSON.stringify(response.data.user));
         navigate("/");
       }
