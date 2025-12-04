@@ -1,0 +1,11 @@
+.env
+.env.dev
+.env.prod
+data/
+
+.venv/
+__pycache__/
+azurite/
+local.settings.json
+
+staticfiles/

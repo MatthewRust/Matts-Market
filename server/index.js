@@ -3,6 +3,7 @@ import cors from 'cors';
 import pg from 'pg';
 import 'dotenv/config'; // Loads .env file (though Docker will handle most in this setup)
 import { initializeSchema } from './db/schema.js';
+import { setupAuthRoutes } from './routes/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -36,6 +37,8 @@ async function setupDatabase() {
     // Docker's depends_on helps, but doesn't guarantee the DB is fully ready.
   }
 }
+// Setup authentication routes
+setupAuthRoutes(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {

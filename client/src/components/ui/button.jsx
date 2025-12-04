@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Slot } from "@/lib/slot"
+import { Slot } from "@/lib/slot.jsx"
 import { cva } from "class-variance-authority";
 
 import { cn } from "@/lib/utils"
