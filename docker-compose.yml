@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+
+  # 1. PostgreSQL Database Service
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      # Optional: Only expose to host if you need to connect with a local tool (e.g., PgAdmin)
+      - "5432:5432"
+    volumes:
+      # Persist data across container restarts
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Run initialization scripts if you place them in ./postgres/init
+      # - ./postgres/init:/docker-entrypoint-initdb.d
+
+  # 2. Node.js Backend Service
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: node_backend
+    restart: always
+    environment:
+      # Pass DB credentials to the Node server
+      PGHOST: postgres # Service name is used as the hostname for internal Docker network
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      # Ensure Postgres is running before the server tries to connect
+      - postgres
+    volumes:
+      # Mount source code for live changes (development only)
+      - ./server:/app
+      - /app/node_modules # Important: Exclude node_modules from volume mount
+
+  # 3. React Frontend Service
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: react_frontend
+    # Note: We use 'npm run dev' which runs a dev server, hence the long wait
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for live changes (development only)
+      - ./client:/app
+      - /app/node_modules # Important: Exclude node_modules from volume mount
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:
