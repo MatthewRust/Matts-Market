@@ -10,6 +10,8 @@ import Home from "./pages/Home";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
 import Wallet from "./pages/privatePages/userPages/Wallet";
+import AllEvents from "./pages/privatePages/events/AllEvents";
+import EventOverview from "./pages/privatePages/events/EventOverview";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/events" element={<AllEvents />} />
+            <Route path="/events/:eventId" element={<EventOverview />} />
           </Routes>
         </Layout>
       </Router>

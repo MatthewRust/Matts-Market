@@ -76,7 +76,7 @@ export async function initializeSchema(client) {
     `);
     console.log("✅ Table 'transactions' ensured.");
 
-    // Wallet / Positions
+    // wallet
     await client.query(`
       CREATE TABLE IF NOT EXISTS wallet (
         position_id SERIAL PRIMARY KEY,

@@ -5,6 +5,7 @@ import 'dotenv/config'; // Loads .env file (though Docker will handle most in th
 import { initializeSchema } from './db/schema.js';
 import { setupAuthRoutes } from './routes/auth.js';
 import { setupUserRoutes } from './routes/user.js';
+import { eventsAPI } from './routes/events.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -43,6 +44,9 @@ setupAuthRoutes(app, dbClient);
 
 // Setup user routes
 setupUserRoutes(app, dbClient);
+
+// Setup events routes
+eventsAPI(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {

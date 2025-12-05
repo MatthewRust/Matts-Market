@@ -21,32 +21,42 @@ const Home = () => {
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center p-4 relative">
-      <div className="absolute top-4 right-4 space-x-2">
-        {user ? (
-          <>
-            <span className="text-sm text-muted-foreground mr-2">
-              Welcome, {user.username}!
-            </span>
-            <Button variant="outline" onClick={handleSignOut}>
-              Sign Out
-            </Button>
-
-            <Button variant="outline" onClick={() => navigate("/wallet")}>
+      <nav className="absolute top-4 left-0 right-0 flex justify-between items-center px-6">
+        <div className="flex space-x-4">
+          {user && (
+            <>
+              <Button variant="outline" onClick={() => navigate("/events")}>
+                Events
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/wallet")}>
                 Wallet
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button variant="outline" onClick={() => navigate("/login")}>
-              Login
-            </Button>
-
-            <Button variant="outline" onClick={() => navigate("/register")}>
-              Register
-            </Button>
-          </>
-        )}
-      </div>
+              </Button>
+            </>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground mr-2">
+                Welcome, {user.username}!
+              </span>
+              <Button variant="outline" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => navigate("/login")}>
+                Login
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/register")}>
+                Register
+              </Button>
+            </>
+          )}
+        </div>
+      </nav>
 
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">Matt's Market</h1>
