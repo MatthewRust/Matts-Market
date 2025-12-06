@@ -14,6 +14,9 @@ import AllEvents from "./pages/privatePages/events/AllEvents";
 import EventOverview from "./pages/privatePages/events/EventOverview";
 import MakeEvent from "./pages/privatePages/events/MakeEvent";
 import BuyShares from "./pages/privatePages/shares/BuyShares";
+import SellShares from "./pages/privatePages/shares/SellShare";
+
+
 
 function App() {
   return (
@@ -29,6 +32,7 @@ function App() {
             <Route path="/events/:eventId" element={<EventOverview />} />
             <Route path="/events/makeevent" element={<MakeEvent/>} />
             <Route path="/events/buyshares/:outcomeID" element={<BuyShares />} />
+            <Route path="/events/sellshares/:outcomeID" element={<SellShares />} />
           </Routes>
         </Layout>
       </Router>

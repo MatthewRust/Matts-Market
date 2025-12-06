@@ -119,7 +119,7 @@ const EventOverview = () => {
                             <Card key={index} className="p-6">
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-start">
-                                        <h3 className="font-semibold text-lg">Outcome {index + 1}</h3>
+                                        <h3 className="font-semibold text-lg">{outcome.outcome_name}</h3>
                                         <span className="text-2xl font-bold text-green-600">
                                             ${outcome.current_price ? parseFloat(outcome.current_price).toFixed(4) : '0.0000'}
                                         </span>
@@ -144,7 +144,7 @@ const EventOverview = () => {
                                         >
                                             Buy Shares
                                         </Button>
-                                        <Button className="flex-1" variant="outline">
+                                        <Button className="flex-1" variant="outline" onClick={() => navigate(`/events/sellshares/${outcome.outcome_id}`)}>
                                             Sell Shares
                                         </Button>
                                     </div>

@@ -1,7 +1,8 @@
 export function buySharesAPI(app, db) {
     app.post('/api/shares/buy', async(req, res) => {
         try {
-            const { userId, outcomeId, shareQuantity } = req.body;
+            const { userId, shareQuantity } = req.body;
+            const outcomeId = parseInt(req.body.outcomeId);
 
             // Validate required fields
             if (!userId || !outcomeId || !shareQuantity) {
@@ -61,31 +62,35 @@ export function buySharesAPI(app, db) {
 
                 const allOutcomes = allOutcomesResult.rows;
 
-                // Calculate new total shares for the event
-                let newEventTotalShares = 0;
-                const updatedOutcomes = allOutcomes.map(o => {
-                    if (o.outcome_id === outcomeId) {
-                        const newShares = o.total_shares_outstanding + shareQuantity;
-                        newEventTotalShares += newShares;
-                        return { ...o, total_shares_outstanding: newShares };
-                    } else {
-                        newEventTotalShares += o.total_shares_outstanding;
-                        return o;
+                // Update the bought outcome's shares first
+                const boughtOutcomeShares = parseInt(outcome.total_shares_outstanding) + parseInt(shareQuantity);
+                
+                // Calculate total shares across all outcomes
+                let totalEventShares = boughtOutcomeShares;
+                for (const o of allOutcomes) {
+                    if (o.outcome_id !== outcomeId) {
+                        totalEventShares += parseInt(o.total_shares_outstanding);
                     }
-                });
+                }
 
-                // Update all outcomes with new pool weights and prices
-                const updatePromises = updatedOutcomes.map(o => {
-                    const newPoolWeight = o.total_shares_outstanding / newEventTotalShares;
-                    const newPrice = 1 * newPoolWeight;
+                // Update bought outcome
+                const boughtPoolWeight = boughtOutcomeShares / totalEventShares;
+                await db.query(
+                    'UPDATE outcomes SET total_shares_outstanding = $1, pool_weight = $2, current_price = $3 WHERE outcome_id = $4',
+                    [boughtOutcomeShares, boughtPoolWeight, boughtPoolWeight, outcomeId]
+                );
 
-                    return db.query(
-                        'UPDATE outcomes SET total_shares_outstanding = $1, pool_weight = $2, current_price = $3 WHERE outcome_id = $4',
-                        [o.total_shares_outstanding, newPoolWeight, newPrice, o.outcome_id]
-                    );
-                });
-
-                await Promise.all(updatePromises);
+                // Update all other outcomes with recalculated pool weights
+                for (const o of allOutcomes) {
+                    if (o.outcome_id !== outcomeId) {
+                        const outcomeShares = parseInt(o.total_shares_outstanding);
+                        const poolWeight = outcomeShares / totalEventShares;
+                        await db.query(
+                            'UPDATE outcomes SET pool_weight = $1, current_price = $2 WHERE outcome_id = $3',
+                            [poolWeight, poolWeight, o.outcome_id]
+                        );
+                    }
+                }
 
                 // Add shares to user's wallet
                 const existingWalletResult = await db.query(
@@ -95,7 +100,7 @@ export function buySharesAPI(app, db) {
 
                 if (existingWalletResult.rows.length > 0) {
                     // Update existing position
-                    const newShares = existingWalletResult.rows[0].shares_held + shareQuantity;
+                    const newShares = parseInt(existingWalletResult.rows[0].shares_held) + parseInt(shareQuantity);
                     await db.query(
                         'UPDATE wallet SET shares_held = $1, updated_at = NOW() WHERE position_id = $2',
                         [newShares, existingWalletResult.rows[0].position_id]
@@ -104,7 +109,7 @@ export function buySharesAPI(app, db) {
                     // Create new position
                     await db.query(
                         'INSERT INTO wallet (user_id, outcome_id, shares_held) VALUES ($1, $2, $3)',
-                        [userId, outcomeId, shareQuantity]
+                        [userId, outcomeId, parseInt(shareQuantity)]
                     );
                 }
 

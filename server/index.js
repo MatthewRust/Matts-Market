@@ -7,6 +7,7 @@ import { setupAuthRoutes } from './routes/auth.js';
 import { setupUserRoutes } from './routes/user.js';
 import { eventsAPI } from './routes/events.js';
 import { buySharesAPI } from './routes/buyShares.js';
+import { sellSharesAPI } from './routes/sellShares.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -51,6 +52,9 @@ eventsAPI(app, dbClient);
 
 // Setup buy shares routes
 buySharesAPI(app, dbClient);
+
+// Setup sell shares routes
+sellSharesAPI(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {
