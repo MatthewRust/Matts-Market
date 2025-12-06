@@ -12,6 +12,8 @@ import Login from "./pages/auth/Login";
 import Wallet from "./pages/privatePages/userPages/Wallet";
 import AllEvents from "./pages/privatePages/events/AllEvents";
 import EventOverview from "./pages/privatePages/events/EventOverview";
+import MakeEvent from "./pages/privatePages/events/MakeEvent";
+import BuyShares from "./pages/privatePages/shares/BuyShares";
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/events" element={<AllEvents />} />
             <Route path="/events/:eventId" element={<EventOverview />} />
+            <Route path="/events/makeevent" element={<MakeEvent/>} />
+            <Route path="/events/buyshares/:outcomeID" element={<BuyShares />} />
           </Routes>
         </Layout>
       </Router>

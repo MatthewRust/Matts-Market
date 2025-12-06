@@ -31,6 +31,9 @@ const Home = () => {
               <Button variant="outline" onClick={() => navigate("/wallet")}>
                 Wallet
               </Button>
+              <Button variant="outline" onClick={() => navigate("/event/makeevent")}>
+                Make Event
+              </Button>
             </>
           )}
         </div>

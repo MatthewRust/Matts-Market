@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const AllEvents = () => {
     const navigate = useNavigate();
@@ -34,8 +35,15 @@ const AllEvents = () => {
         <div className="min-h-screen p-6">
             <div className="max-w-7xl mx-auto">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2">All Events</h1>
-                    <p className="text-muted-foreground">Browse and participate in prediction markets</p>
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <h1 className="text-3xl font-bold mb-2">All Events</h1>
+                            <p className="text-muted-foreground">Browse and participate in prediction markets</p>
+                        </div>
+                        <Button onClick={() => navigate('/events/makeevent')}>
+                            Create Event
+                        </Button>
+                    </div>
                 </div>
 
                 {events.length === 0 ? (

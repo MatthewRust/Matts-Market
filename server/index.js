@@ -6,6 +6,7 @@ import { initializeSchema } from './db/schema.js';
 import { setupAuthRoutes } from './routes/auth.js';
 import { setupUserRoutes } from './routes/user.js';
 import { eventsAPI } from './routes/events.js';
+import { buySharesAPI } from './routes/buyShares.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -47,6 +48,9 @@ setupUserRoutes(app, dbClient);
 
 // Setup events routes
 eventsAPI(app, dbClient);
+
+// Setup buy shares routes
+buySharesAPI(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {

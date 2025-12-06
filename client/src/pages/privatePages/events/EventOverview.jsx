@@ -137,7 +137,11 @@ const EventOverview = () => {
                                     </div>
                                     
                                     <div className="flex space-x-2 pt-2">
-                                        <Button className="flex-1" variant="default">
+                                        <Button 
+                                            className="flex-1" 
+                                            variant="default"
+                                            onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}`)}
+                                        >
                                             Buy Shares
                                         </Button>
                                         <Button className="flex-1" variant="outline">
