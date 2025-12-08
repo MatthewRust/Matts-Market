@@ -1,24 +1,39 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { DateTimePicker } from "@/components/ui/dateTime";
+
+// Helper to format date to datetime-local string
+const formatDateTime = (date) => {
+    const pad = (n) => n.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
 const MakeEvent = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
     
-    const [formData, setFormData] = useState({
+    // Default: start now, end in 1 week
+    const now = new Date();
+    const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    const [formData, setFormData] = useState(() => ({
         name: "",
         description: "",
-        start_time: "",
-        end_time: ""
-    });
+        start_time: formatDateTime(now),
+        end_time: formatDateTime(oneWeekLater)
+    }));
+    
+    // Today at midnight for disabling past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const [outcomes, setOutcomes] = useState([
         { name: "" },
@@ -33,7 +48,14 @@ const MakeEvent = () => {
         }));
         // Clear error when user starts typing
         if (error) setError("");
-        if (success) setSuccess("");
+    };
+
+    const handleDateTimeChange = (name, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        if (error) setError("");
     };
 
     const handleOutcomeChange = (index, value) => {
@@ -42,7 +64,6 @@ const MakeEvent = () => {
         setOutcomes(updatedOutcomes);
         
         if (error) setError("");
-        if (success) setSuccess("");
     };
 
     const addOutcome = () => {
@@ -60,7 +81,6 @@ const MakeEvent = () => {
         e.preventDefault();
         setLoading(true);
         setError("");
-        setSuccess("");
 
         // Validate outcomes
         const validOutcomes = outcomes.filter(outcome => outcome.name.trim() !== "");
@@ -78,21 +98,20 @@ const MakeEvent = () => {
 
             const response = await axios.post("http://localhost:8080/api/event/createEvent", requestData);
             
-            setSuccess("Event created successfully!");
-            
-            // Reset form
+            toast.success("Event created successfully!");
+            navigate('/events')
+
+            // Reset form with fresh dates
+            const resetNow = new Date();
+            const resetWeekLater = new Date(resetNow.getTime() + 7 * 24 * 60 * 60 * 1000);
             setFormData({
                 name: "",
                 description: "",
-                start_time: "",
-                end_time: ""
+                start_time: formatDateTime(resetNow),
+                end_time: formatDateTime(resetWeekLater)
             });
             setOutcomes([{ name: "" }, { name: "" }]);
 
-            // Redirect to events page after 2 seconds
-            setTimeout(() => {
-                navigate("/events");
-            }, 2000);
 
         } catch (error) {
             setError(error.response?.data?.message || "Failed to create event");
@@ -148,24 +167,22 @@ const MakeEvent = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="start_time">Start Time *</Label>
-                                <Input
+                                <DateTimePicker
                                     id="start_time"
-                                    name="start_time"
-                                    type="datetime-local"
                                     value={formData.start_time}
-                                    onChange={handleInputChange}
+                                    onChange={(value) => handleDateTimeChange("start_time", value)}
+                                    minDate={today}
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="end_time">End Time *</Label>
-                                <Input
+                                <DateTimePicker
                                     id="end_time"
-                                    name="end_time"
-                                    type="datetime-local"
                                     value={formData.end_time}
-                                    onChange={handleInputChange}
+                                    onChange={(value) => handleDateTimeChange("end_time", value)}
+                                    minDate={today}
                                     required
                                 />
                             </div>
@@ -215,13 +232,6 @@ const MakeEvent = () => {
                         {error && (
                             <div className="p-4 bg-red-50 border border-red-200 rounded-md">
                                 <p className="text-red-600 text-sm">{error}</p>
-                            </div>
-                        )}
-
-                        {success && (
-                            <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                                <p className="text-green-600 text-sm">{success}</p>
-                                <p className="text-green-600 text-xs mt-1">Redirecting to events page...</p>
                             </div>
                         )}
 

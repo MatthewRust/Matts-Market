@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Toaster } from "@/components/ui/sonner";
 
 const Layout = ({ children }) => {
   return (
@@ -7,6 +8,7 @@ const Layout = ({ children }) => {
         <ThemeToggle />
       </div>
       <div>{children}</div>
+      <Toaster />
     </div>
   );
 };

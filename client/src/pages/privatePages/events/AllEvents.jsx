@@ -43,10 +43,6 @@ const AllEvents = () => {
                         <Button onClick={() => navigate('/events/makeevent')}>
                             Create Event
                         </Button>
-
-                        <Button onClick={() => navigate('/')}>
-                            Home
-                        </Button>
                     </div>
                 </div>
 
