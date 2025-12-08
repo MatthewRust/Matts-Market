@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   # 1. PostgreSQL Database Service
@@ -13,7 +11,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       # Optional: Only expose to host if you need to connect with a local tool (e.g., PgAdmin)
-      - "5432:5432"
+      # Using 5433 to avoid conflict with existing PostgreSQL on port 5432
+      - "5433:5432"
     volumes:
       # Persist data across container restarts
       - postgres_data:/var/lib/postgresql/data
