@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 import PrivateRoute from "./routes/PrivateRoutes";
 
@@ -20,23 +21,25 @@ import SellShares from "./pages/privatePages/shares/SellShare";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/events" element={<AllEvents />} />
-            <Route path="/events/:eventId" element={<EventOverview />} />
-            <Route path="/events/makeevent" element={<MakeEvent/>} />
-            <Route path="/events/buyshares/:outcomeID" element={<BuyShares />} />
-            <Route path="/events/sellshares/:outcomeID" element={<SellShares />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/events" element={<AllEvents />} />
+              <Route path="/events/:eventId" element={<EventOverview />} />
+              <Route path="/events/makeevent" element={<MakeEvent/>} />
+              <Route path="/events/buyshares/:outcomeID" element={<BuyShares />} />
+              <Route path="/events/sellshares/:outcomeID" element={<SellShares />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
