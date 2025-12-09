@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EventOverviewCard } from "@/components/EventOverviewCard";
 
 const AllEvents = () => {
     const navigate = useNavigate();
@@ -43,10 +44,6 @@ const AllEvents = () => {
                         <Button onClick={() => navigate('/events/makeevent')}>
                             Create Event
                         </Button>
-
-                        <Button onClick={() => navigate('/')}>
-                            Home
-                        </Button>
                     </div>
                 </div>
 
@@ -60,45 +57,7 @@ const AllEvents = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {events.map((event) => (
-                            <Card 
-                                key={event.event_id} 
-                                className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                                onClick={() => navigate(`/events/${event.event_id}`)}
-                            >
-                                <div className="space-y-4">
-                                    <div>
-                                        <h3 className="font-semibold text-lg line-clamp-2">{event.name}</h3>
-                                        <p className="text-muted-foreground text-sm mt-2 line-clamp-3">
-                                            {event.description}
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-muted-foreground">Starts:</span>
-                                            <span>{new Date(event.start_time).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-muted-foreground">Ends:</span>
-                                            <span>{new Date(event.end_time).toLocaleDateString()}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-between pt-2">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                            event.status === 'active' ? 'bg-green-100 text-green-800' :
-                                            event.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                                            event.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                            {event.status}
-                                        </span>
-                                        <button className="text-primary hover:text-primary/80 text-sm font-medium">
-                                            View Details →
-                                        </button>
-                                    </div>
-                                </div>
-                            </Card>
+                            <EventOverviewCard key={event.event_id} event={event}/>
                         ))}
                     </div>
                 )}

@@ -1,12 +1,31 @@
 export function eventsAPI(app, db){
     app.get('/api/event/showEvents', async(req, res) => {
         try{
-            const result = await db.query(
+            const eventsResult = await db.query(
                 'SELECT event_id, name, description, start_time, end_time, status FROM events ORDER BY start_time DESC'
             );
             
+            const outcomesResult = await db.query(
+                'SELECT outcome_id, event_id, name, current_price FROM outcomes'
+            );
+
+            // Group outcomes by event_id
+            const outcomesByEvent = outcomesResult.rows.reduce((acc, outcome) => {
+                if (!acc[outcome.event_id]) {
+                    acc[outcome.event_id] = [];
+                }
+                acc[outcome.event_id].push(outcome);
+                return acc;
+            }, {});
+
+            // Attach outcomes to each event
+            const eventsWithOutcomes = eventsResult.rows.map(event => ({
+                ...event,
+                outcomes: outcomesByEvent[event.event_id] || []
+            }));
+
             res.status(200).json({
-                events: result.rows
+                events: eventsWithOutcomes
             });
         }catch(error){
             console.error("An error occured " + error)
