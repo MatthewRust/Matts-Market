@@ -17,6 +17,18 @@ const EventOverview = () => {
         }
     }, [eventId]);
 
+    // Refetch data whenever component comes into focus (e.g., navigating back from BuyShares)
+    useEffect(() => {
+        const handleFocus = () => {
+            if (eventId) {
+                getEventData(eventId);
+            }
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, [eventId]);
+
     const getEventData = async (eventID) =>{
         try{
             const eventResponse = await axios.get(`http://localhost:8080/api/event/showEventData/${eventID}`);
@@ -104,7 +116,7 @@ const EventOverview = () => {
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Current No Price:</span>
                                             <span className="font-bold text-green-600">
-                                                ${event.current_yes_price ? parseFloat(event.current_no_price).toFixed(4) : '0.0000'}
+                                                ${event.current_no_price ? parseFloat(event.current_no_price).toFixed(4) : '0.0000'}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
@@ -126,9 +138,18 @@ const EventOverview = () => {
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-start">
                                         <h3 className="font-semibold text-lg">{outcome.outcome_name}</h3>
-                                        <span className="text-2xl font-bold text-green-600">
-                                            ${outcome.current_price ? parseFloat(outcome.current_price).toFixed(4) : '0.0000'}
-                                        </span>
+                                    </div>
+                                    <div className="flex space-x-2 pt-2">
+                                        <Button 
+                                            className="flex-1" 
+                                            variant="default"
+                                            onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}/YES`)}
+                                        >
+                                            Yes
+                                        </Button>
+                                        <Button className="flex-1" variant="outline" onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}/NO`)}>
+                                            No
+                                        </Button>
                                     </div>
                                 </div>
                             </Card>

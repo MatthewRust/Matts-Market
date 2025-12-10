@@ -71,6 +71,7 @@ export async function initializeSchema(client) {
         user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
         outcome_id INT NOT NULL REFERENCES outcomes(outcome_id) ON DELETE CASCADE,
         type VARCHAR(50) NOT NULL,
+        position VARCHAR(3) NOT NULL,
         share_count INT NOT NULL,
         price_per_share DECIMAL(10, 4) NOT NULL,
         total_amount DECIMAL(14, 2) NOT NULL,
