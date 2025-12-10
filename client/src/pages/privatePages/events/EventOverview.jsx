@@ -99,32 +99,6 @@ const EventOverview = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div className="space-y-4">
-                                    <h3 className="text-xl font-semibold">Market Info</h3>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Current Yes Price:</span>
-                                            <span className="font-bold text-green-600">
-                                                ${event.current_yes_price ? parseFloat(event.current_yes_price).toFixed(4) : '0.0000'}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Total Yes Shares:</span>
-                                            <span>{event.outstanding_yes_shares || '0'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Current No Price:</span>
-                                            <span className="font-bold text-green-600">
-                                                ${event.current_no_price ? parseFloat(event.current_no_price).toFixed(4) : '0.0000'}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Total No Shares:</span>
-                                            <span>{event.outstanding_no_shares || '0'}</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </Card>
@@ -139,6 +113,30 @@ const EventOverview = () => {
                                     <div className="flex justify-between items-start">
                                         <h3 className="font-semibold text-lg">{outcome.outcome_name}</h3>
                                     </div>
+                                    
+                                    <div className="space-y-2 bg-muted/50 p-4 rounded-md">
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-muted-foreground">Yes Price:</span>
+                                            <span className="font-semibold text-green-600">
+                                                ${parseFloat(outcome.current_yes_price).toFixed(4)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-muted-foreground">Yes Shares:</span>
+                                            <span className="font-semibold">{outcome.outstanding_yes_shares}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-muted-foreground">No Price:</span>
+                                            <span className="font-semibold text-red-600">
+                                                ${parseFloat(outcome.current_no_price).toFixed(4)}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-muted-foreground">No Shares:</span>
+                                            <span className="font-semibold">{outcome.outstanding_no_shares}</span>
+                                        </div>
+                                    </div>
+                                    
                                     <div className="flex space-x-2 pt-2">
                                         <Button 
                                             className="flex-1" 
