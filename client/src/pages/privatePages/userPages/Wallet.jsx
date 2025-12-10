@@ -57,6 +57,13 @@ const Wallet = () => {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/')}
+          className="mb-6"
+        >
+          ← Home
+        </Button>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">
             {user?.username}'s Wallet
@@ -68,6 +75,7 @@ const Wallet = () => {
             </p>
           </div>
         </div>
+        
 
         {positions.length === 0 ? (
           <Card className="p-6">
