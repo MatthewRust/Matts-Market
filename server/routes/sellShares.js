@@ -1,7 +1,7 @@
 export function sellSharesAPI(app, db){
     app.post('/api/shares/sell', async(req, res) => {
         try{
-            const {userId, shareQuantity} = req.body;
+            const {userId, shareQuantity, yesNo} = req.body;
             const outcomeId = parseInt(req.body.outcomeId);
 
             if (!userId || !outcomeId || !shareQuantity){
@@ -15,10 +15,10 @@ export function sellSharesAPI(app, db){
             await db.query("BEGIN");
 
             try {
-                // Check user's wallet for shares
+                //checks the users wallet for any posistions that they may have for certain outcomes.
                 const userWalletResult = await db.query(
-                    'SELECT position_id, shares_held FROM wallet WHERE user_id = $1 AND outcome_id = $2',
-                    [userId, outcomeId]
+                    'SELECT position_id, shares_held FROM wallet WHERE user_id = $1 AND outcome_id = $2 AND position = $3',
+                    [userId, outcomeId, yesNo]
                 );
 
                 if (userWalletResult.rows.length === 0){
@@ -37,9 +37,9 @@ export function sellSharesAPI(app, db){
                     });
                 }
 
-                // Get outcome data for event_id and current pool_weight
+                //grabs the outcome data
                 const outcomeResult = await db.query(
-                    'SELECT event_id, pool_weight, total_shares_outstanding, name FROM outcomes WHERE outcome_id = $1',
+                    'SELECT event_id, current_yes_price, current_no_price, outstanding_yes_shares, outstanding_no_shares, total_shares_outstanding, name FROM outcomes WHERE outcome_id = $1',
                     [outcomeId]
                 );
 
@@ -49,42 +49,33 @@ export function sellSharesAPI(app, db){
                 }
 
                 const outcome = outcomeResult.rows[0];
-                const saleProceeds = Math.ceil(outcome.pool_weight * shareQuantity * 100) / 100;
-                const allOutcomesResult = await db.query(
-                    'SELECT outcome_id, total_shares_outstanding FROM outcomes WHERE event_id = $1',
-                    [outcome.event_id]
-                );
-                const allOutcomes = allOutcomesResult.rows;
-
-                // Update the sold outcome's shares first
-                const soldOutcomeShares = parseInt(outcome.total_shares_outstanding) - parseInt(shareQuantity);
+                const currentPrice = yesNo === 'YES' ? parseFloat(outcome.current_yes_price) : parseFloat(outcome.current_no_price);
+                const saleProceeds = parseFloat((currentPrice * shareQuantity).toFixed(2));
                 
-                // Calculate total shares across all outcomes
-                let totalEventShares = soldOutcomeShares;
-                for (const o of allOutcomes) {
-                    if (o.outcome_id !== outcomeId) {
-                        totalEventShares += parseInt(o.total_shares_outstanding);
-                    }
+                // updates the shares for yes and no
+                const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
+                const noSharesInt = parseInt(outcome.outstanding_no_shares);
+                const totalSharesInt = parseInt(outcome.total_shares_outstanding);
+                const quantityInt = parseInt(shareQuantity);
+                
+                const newTotalShares = totalSharesInt - quantityInt;
+                let newYesShares = yesSharesInt;
+                let newNoShares = noSharesInt;
+                
+                if (yesNo === 'YES') {
+                    newYesShares -= quantityInt;
+                } else {
+                    newNoShares -= quantityInt;
                 }
-
-                // Update sold outcome
-                const soldPoolWeight = soldOutcomeShares / totalEventShares;
+                
+                // redose the shares for the yes and no
+                const newYesPrice = newTotalShares > 0 ? parseFloat((newYesShares / newTotalShares).toFixed(4)) : 0;
+                const newNoPrice = newTotalShares > 0 ? parseFloat((newNoShares / newTotalShares).toFixed(4)) : 0;
+                
                 await db.query(
-                    'UPDATE outcomes SET total_shares_outstanding = $1, pool_weight = $2, current_price = $3 WHERE outcome_id = $4',
-                    [soldOutcomeShares, soldPoolWeight, soldPoolWeight, outcomeId]
+                    'UPDATE outcomes SET outstanding_yes_shares = $1, outstanding_no_shares = $2, total_shares_outstanding = $3, current_yes_price = $4, current_no_price = $5 WHERE outcome_id = $6',
+                    [newYesShares, newNoShares, newTotalShares, newYesPrice, newNoPrice, outcomeId]
                 );
-
-                // Update all other outcomes with recalculated pool weights
-                for (const o of allOutcomes) {
-                    if (o.outcome_id !== outcomeId) {
-                        const outcomeShares = parseInt(o.total_shares_outstanding);
-                        const poolWeight = outcomeShares / totalEventShares;
-                        await db.query(
-                            'UPDATE outcomes SET pool_weight = $1, current_price = $2 WHERE outcome_id = $3',
-                            [poolWeight, poolWeight, o.outcome_id]
-                        );
-                    }
-                }
 
                 //update the wallet
                 const newSharesHeld = parseInt(userPosition.shares_held) - parseInt(shareQuantity);
@@ -116,8 +107,8 @@ export function sellSharesAPI(app, db){
 
                 //take note of the transaction
                 await db.query(
-                    'INSERT INTO transactions (user_id, outcome_id, type, share_count, price_per_share, total_amount) VALUES ($1, $2, $3, $4, $5, $6)',
-                    [userId, outcomeId, 'SELL', shareQuantity, outcome.pool_weight, saleProceeds]
+                    'INSERT INTO transactions (user_id, outcome_id, type, position, share_count, price_per_share, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                    [userId, outcomeId, 'SELL', yesNo, shareQuantity, currentPrice, saleProceeds]
                 );
 
                 await db.query('COMMIT');
@@ -146,7 +137,7 @@ export function sellSharesAPI(app, db){
             const { userId, outcomeId } = req.params;
 
             const result = await db.query(
-                'SELECT w.shares_held, o.outcome_id, o.name, o.current_price, o.pool_weight, e.event_id, e.name as event_name FROM wallet w JOIN outcomes o ON w.outcome_id = o.outcome_id JOIN events e ON o.event_id = e.event_id WHERE w.user_id = $1 AND w.outcome_id = $2',
+                'SELECT w.shares_held, w.position, o.outcome_id, o.name, o.current_yes_price, o.current_no_price, e.event_id, e.name as event_name FROM wallet w JOIN outcomes o ON w.outcome_id = o.outcome_id JOIN events e ON o.event_id = e.event_id WHERE w.user_id = $1 AND w.outcome_id = $2',
                 [userId, outcomeId]
             );
 

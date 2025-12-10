@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const BuyShares = () => {
-    const { outcomeID } = useParams();
+    const { outcomeID, yesNo } = useParams();
     const navigate = useNavigate();
     const [outcomeData, setOutcomeData] = useState(null);
     const [userBalance, setUserBalance] = useState(0);
@@ -50,7 +50,13 @@ const BuyShares = () => {
 
     const calculateTotalCost = () => {
         if (!outcomeData || !shareQuantity) return 0;
-        return (outcomeData.current_price * shareQuantity).toFixed(2);
+        if (yesNo == 'YES'){
+            return (outcomeData.current_yes_price * shareQuantity).toFixed(2);
+        }
+        else{
+            return (outcomeData.current_no_price * shareQuantity).toFixed(2);
+        }
+        
     };
 
     const handlePurchase = async (e) => {
@@ -80,7 +86,8 @@ const BuyShares = () => {
             const response = await axios.post("http://localhost:8080/api/shares/buy", {
                 userId: userData.user_id,
                 outcomeId: outcomeID,
-                shareQuantity: parseInt(shareQuantity)
+                shareQuantity: parseInt(shareQuantity), 
+                yesNo
             });
 
             setSuccess(`Successfully purchased ${shareQuantity} shares!`);
@@ -89,6 +96,7 @@ const BuyShares = () => {
             // Update localStorage with new balance
             userData.balance = response.data.new_balance;
             localStorage.setItem("user", JSON.stringify(userData));
+            await getOutcomeData();
 
             // Redirect to events page after 2 seconds
             setTimeout(() => {
@@ -128,6 +136,10 @@ const BuyShares = () => {
 
     const totalCost = calculateTotalCost();
     const canAfford = totalCost <= userBalance;
+    
+    // so we show the right yes or no when buying and there cost
+    const currentPrice = yesNo === 'YES' ? outcomeData.current_yes_price : outcomeData.current_no_price;
+    const sharesOutstanding = yesNo === 'YES' ? outcomeData.outstanding_yes_shares : outcomeData.outstanding_no_shares;
 
     return (
         <div className="min-h-screen p-6">
@@ -141,7 +153,7 @@ const BuyShares = () => {
                         ← Back to Events
                     </Button>
                     
-                    <h1 className="text-3xl font-bold mb-2">Buy Shares</h1>
+                    <h1 className="text-3xl font-bold mb-2">Buy {yesNo} Shares</h1>
                     <p className="text-muted-foreground">Purchase shares in {outcomeData.event_name}</p>
                 </div>
 
@@ -156,21 +168,15 @@ const BuyShares = () => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Price Per Share</p>
+                                    <p className="text-sm text-muted-foreground">Price Per {yesNo} Share</p>
                                     <p className="text-2xl font-bold text-green-600">
-                                        ${parseFloat(outcomeData.current_price).toFixed(4)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Pool Weight</p>
-                                    <p className="text-2xl font-bold">
-                                        {(parseFloat(outcomeData.pool_weight) * 100).toFixed(2)}%
+                                        ${parseFloat(currentPrice).toFixed(4)}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Shares Outstanding</p>
                                     <p className="text-2xl font-bold">
-                                        {outcomeData.total_shares_outstanding}
+                                        {sharesOutstanding}
                                     </p>
                                 </div>
                             </div>
@@ -197,7 +203,7 @@ const BuyShares = () => {
                             <div className="border rounded-md p-4 space-y-2 bg-slate-50">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Price per share:</span>
-                                    <span className="font-medium">${parseFloat(outcomeData.current_price).toFixed(4)}</span>
+                                    <span className="font-medium">${parseFloat(currentPrice).toFixed(4)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Quantity:</span>
