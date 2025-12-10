@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
+//import cron from 'node-cron';
 import 'dotenv/config'; // Loads .env file (though Docker will handle most in this setup)
 import { initializeSchema } from './db/schema.js';
 import { setupAuthRoutes } from './routes/auth.js';
@@ -8,6 +9,9 @@ import { setupUserRoutes } from './routes/user.js';
 import { eventsAPI } from './routes/events.js';
 import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
+
+
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -93,6 +97,11 @@ app.get('/', (req, res) => {
     res.status(200).send('Node.js Server is Running!');
 });
 
+//cron.schedule("*/10 * * * * *", function() {
+//  console.log("running every 10 seonds");
+//}) 
+
+
 // Start the server and connect to the database
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
@@ -101,3 +110,4 @@ app.listen(PORT, () => {
     process.exit(1);
   });
 });
+

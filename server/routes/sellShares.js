@@ -1,4 +1,54 @@
 export function sellSharesAPI(app, db){
+    // LMSR liquidity parameter
+    const b = 100;
+
+    // LMSR cost function
+    function costFunction(qYes, qNo) {
+        return b * Math.log(Math.exp(qYes / b) + Math.exp(qNo / b));
+    }
+
+    // Get marginal price of YES
+    function priceYes(qYes, qNo) {
+        const eYes = Math.exp(qYes / b);
+        const eNo = Math.exp(qNo / b);
+        return eYes / (eYes + eNo);
+    }
+
+    // Get marginal price of NO
+    function priceNo(qYes, qNo) {
+        return 1 - priceYes(qYes, qNo);
+    }
+
+    // Trade YES shares (delta > 0 for buy, < 0 for sell)
+    function tradeYes(currentYes, currentNo, deltaYes) {
+        const oldCost = costFunction(currentYes, currentNo);
+        const newCost = costFunction(currentYes + deltaYes, currentNo);
+        const cost = newCost - oldCost;
+
+        return {
+            cost,
+            newYesShares: currentYes + deltaYes,
+            newNoShares: currentNo,
+            newPriceYes: parseFloat(priceYes(currentYes + deltaYes, currentNo).toFixed(4)),
+            newPriceNo: parseFloat(priceNo(currentYes + deltaYes, currentNo).toFixed(4))
+        };
+    }
+
+    // Trade NO shares (delta > 0 for buy, < 0 for sell)
+    function tradeNo(currentYes, currentNo, deltaNo) {
+        const oldCost = costFunction(currentYes, currentNo);
+        const newCost = costFunction(currentYes, currentNo + deltaNo);
+        const cost = newCost - oldCost;
+
+        return {
+            cost,
+            newYesShares: currentYes,
+            newNoShares: currentNo + deltaNo,
+            newPriceYes: parseFloat(priceYes(currentYes, currentNo + deltaNo).toFixed(4)),
+            newPriceNo: parseFloat(priceNo(currentYes, currentNo + deltaNo).toFixed(4))
+        };
+    }
+
     app.post('/api/shares/sell', async(req, res) => {
         try{
             const {userId, shareQuantity, yesNo} = req.body;
@@ -49,32 +99,21 @@ export function sellSharesAPI(app, db){
                 }
 
                 const outcome = outcomeResult.rows[0];
-                const currentPrice = yesNo === 'YES' ? parseFloat(outcome.current_yes_price) : parseFloat(outcome.current_no_price);
-                const saleProceeds = parseFloat((currentPrice * shareQuantity).toFixed(2));
-                
-                // updates the shares for yes and no
                 const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
                 const noSharesInt = parseInt(outcome.outstanding_no_shares);
-                const totalSharesInt = parseInt(outcome.total_shares_outstanding);
                 const quantityInt = parseInt(shareQuantity);
-                
-                const newTotalShares = totalSharesInt - quantityInt;
-                let newYesShares = yesSharesInt;
-                let newNoShares = noSharesInt;
-                
-                if (yesNo === 'YES') {
-                    newYesShares -= quantityInt;
-                } else {
-                    newNoShares -= quantityInt;
-                }
-                
-                // redose the shares for the yes and no
-                const newYesPrice = newTotalShares > 0 ? parseFloat((newYesShares / newTotalShares).toFixed(4)) : 0;
-                const newNoPrice = newTotalShares > 0 ? parseFloat((newNoShares / newTotalShares).toFixed(4)) : 0;
-                
+
+                // Use LMSR to calculate proceeds and new prices (negative delta for selling)
+                const tradeResult = yesNo === 'YES' 
+                    ? tradeYes(yesSharesInt, noSharesInt, -quantityInt)
+                    : tradeNo(yesSharesInt, noSharesInt, -quantityInt);
+
+                const saleProceeds = parseFloat(Math.abs(tradeResult.cost).toFixed(2));
+
+                // Update outcomes with LMSR calculated values
                 await db.query(
                     'UPDATE outcomes SET outstanding_yes_shares = $1, outstanding_no_shares = $2, total_shares_outstanding = $3, current_yes_price = $4, current_no_price = $5 WHERE outcome_id = $6',
-                    [newYesShares, newNoShares, newTotalShares, newYesPrice, newNoPrice, outcomeId]
+                    [tradeResult.newYesShares, tradeResult.newNoShares, tradeResult.newYesShares + tradeResult.newNoShares, tradeResult.newPriceYes, tradeResult.newPriceNo, outcomeId]
                 );
 
                 //update the wallet
@@ -108,7 +147,7 @@ export function sellSharesAPI(app, db){
                 //take note of the transaction
                 await db.query(
                     'INSERT INTO transactions (user_id, outcome_id, type, position, share_count, price_per_share, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                    [userId, outcomeId, 'SELL', yesNo, shareQuantity, currentPrice, saleProceeds]
+                    [userId, outcomeId, 'SELL', yesNo, shareQuantity, (saleProceeds / shareQuantity).toFixed(4), saleProceeds]
                 );
 
                 await db.query('COMMIT');
