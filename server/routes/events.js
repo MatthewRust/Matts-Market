@@ -118,8 +118,6 @@ export function eventsAPI(app, db){
                 });
 
                 await Promise.all(outcomePromises);
-
-                // Commit transaction
                 await db.query('COMMIT');
 
                 res.status(201).json({
@@ -129,7 +127,6 @@ export function eventsAPI(app, db){
                 });
 
             } catch (transactionError) {
-                // Rollback transaction on error
                 await db.query('ROLLBACK');
                 throw transactionError;
             }

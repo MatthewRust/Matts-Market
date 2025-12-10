@@ -80,13 +80,12 @@ export function buySharesAPI(app, db) {
                     [newYesShares, newNoShares, newTotalShares, newYesPrice, newNoPrice, outcomeId]
                 );
 
-                // Verify the update
-                const verifyResult = await db.query(
+                // some debugging stuff WILL REMOVE LATER ONCE IT WORKS
+                const verify = await db.query(
                     'SELECT outstanding_yes_shares, outstanding_no_shares, total_shares_outstanding, current_yes_price, current_no_price FROM outcomes WHERE outcome_id = $1',
                     [outcomeId]
                 );
-                console.log(`[VERIFY] After DB update:`, verifyResult.rows[0]);
-                console.log(`=== BUY SHARES DEBUG END ===\n`);
+                console.log(verify.rows[0]);
 
                 //add shares to user wallet
                 const existingWalletResult = await db.query(
