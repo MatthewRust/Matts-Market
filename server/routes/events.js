@@ -6,7 +6,7 @@ export function eventsAPI(app, db){
             );
             
             const outcomesResult = await db.query(
-                'SELECT outcome_id, event_id, name, current_price FROM outcomes'
+                'SELECT outcome_id, event_id, name, current_yes_price, current_no_price, outstanding_yes_shares, outstanding_no_shares, total_shares_outstanding FROM outcomes'
             );
 
             // Group outcomes by event_id
@@ -40,7 +40,7 @@ export function eventsAPI(app, db){
         try{
             const {eventID} = req.params;
             const result = await db.query(
-                'SELECT o.outcome_id, e.name, e.description, e.start_time, e.end_time, o.name as outcome_name, o.current_price, o.total_shares_outstanding, o.pool_weight FROM events e JOIN outcomes o ON e.event_id = o.event_id WHERE e.event_id = $1'
+                'SELECT o.outcome_id, e.name, e.description, e.start_time, e.end_time, o.name as outcome_name, o.current_yes_price, o.current_no_price, o.outstanding_yes_shares, outstanding_no_shares, o.total_shares_outstanding FROM events e JOIN outcomes o ON e.event_id = o.event_id WHERE e.event_id = $1'
             , [eventID]);
 
             res.status(200).json({position: result.rows});
@@ -109,17 +109,11 @@ export function eventsAPI(app, db){
 
                 const eventId = eventResult.rows[0].event_id;
 
-                // Calculate shares and prices for outcomes
-                const sharesPerOutcome = 100;
-                const totalSharesForEvent = validOutcomes.length * sharesPerOutcome;
-                const poolWeight = sharesPerOutcome / totalSharesForEvent;
-                const currentPrice = 1 * poolWeight;
-
                 // Create outcomes for the event
                 const outcomePromises = validOutcomes.map(outcome => {
                     return db.query(
-                        'INSERT INTO outcomes (event_id, name, current_price, total_shares_outstanding, pool_weight) VALUES ($1, $2, $3, $4, $5)',
-                        [eventId, outcome.name.trim(), currentPrice, sharesPerOutcome, poolWeight]
+                        'INSERT INTO outcomes (event_id, name) VALUES ($1, $2)',
+                        [eventId, outcome.name.trim()]
                     );
                 });
 
