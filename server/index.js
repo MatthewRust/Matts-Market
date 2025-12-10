@@ -46,7 +46,7 @@ async function setupDatabase() {
       retries++;
       console.error(`❌ Database connection error attempt ${retries}:`, err.message);
       
-      if (retries < maxRetries) {
+      if (retries < max) {
         // wait for 2 seconds until the retrie is tried again
         console.log(`retrieing in 2 seconds...`);
         await new Promise(resolve => setTimeout(resolve, 2000));

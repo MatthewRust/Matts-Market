@@ -40,7 +40,7 @@ export function eventsAPI(app, db){
         try{
             const {eventID} = req.params;
             const result = await db.query(
-                'SELECT o.outcome_id, e.name, e.description, e.start_time, e.end_time, o.name as outcome_name, o.current_yes_price, o.current_no_price, o.outstanding_yes_shares, outstanding_no_shares, o.total_shares_outstanding FROM events e JOIN outcomes o ON e.event_id = o.event_id WHERE e.event_id = $1'
+                'SELECT o.outcome_id, e.name, e.description, e.start_time, e.end_time, o.name as outcome_name, o.current_yes_price, o.current_no_price, o.outstanding_yes_shares, o.outstanding_no_shares, o.total_shares_outstanding FROM events e JOIN outcomes o ON e.event_id = o.event_id WHERE e.event_id = $1'
             , [eventID]);
 
             res.status(200).json({position: result.rows});

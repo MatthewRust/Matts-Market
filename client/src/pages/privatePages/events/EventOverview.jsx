@@ -92,18 +92,24 @@ const EventOverview = () => {
                                     <h3 className="text-xl font-semibold">Market Info</h3>
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Current Price:</span>
+                                            <span className="text-muted-foreground">Current Yes Price:</span>
                                             <span className="font-bold text-green-600">
-                                                ${event.current_price ? parseFloat(event.current_price).toFixed(4) : '0.0000'}
+                                                ${event.current_yes_price ? parseFloat(event.current_yes_price).toFixed(4) : '0.0000'}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Total Shares:</span>
-                                            <span>{event.total_shares_outstanding || '0'}</span>
+                                            <span className="text-muted-foreground">Total Yes Shares:</span>
+                                            <span>{event.outstanding_yes_shares || '0'}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Pool Weight:</span>
-                                            <span>{event.pool_weight || '0'}</span>
+                                            <span className="text-muted-foreground">Current No Price:</span>
+                                            <span className="font-bold text-green-600">
+                                                ${event.current_yes_price ? parseFloat(event.current_no_price).toFixed(4) : '0.0000'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Total No Shares:</span>
+                                            <span>{event.outstanding_no_shares || '0'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -123,30 +129,6 @@ const EventOverview = () => {
                                         <span className="text-2xl font-bold text-green-600">
                                             ${outcome.current_price ? parseFloat(outcome.current_price).toFixed(4) : '0.0000'}
                                         </span>
-                                    </div>
-                                    
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Shares Outstanding:</span>
-                                            <span>{outcome.total_shares_outstanding || '0'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Pool Weight:</span>
-                                            <span>{outcome.pool_weight || '0'}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex space-x-2 pt-2">
-                                        <Button 
-                                            className="flex-1" 
-                                            variant="default"
-                                            onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}`)}
-                                        >
-                                            Buy Shares
-                                        </Button>
-                                        <Button className="flex-1" variant="outline" onClick={() => navigate(`/events/sellshares/${outcome.outcome_id}`)}>
-                                            Sell Shares
-                                        </Button>
                                     </div>
                                 </div>
                             </Card>

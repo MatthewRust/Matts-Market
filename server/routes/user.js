@@ -34,7 +34,8 @@ export function setupUserRoutes(app, dbClient) {
           w.shares_held,
           w.updated_at,
           o.name as outcome_name,
-          o.current_price,
+          o.current_yes_price,
+          o.current_no_price,
           e.name as event_name,
           e.status as event_status
         FROM wallet w
