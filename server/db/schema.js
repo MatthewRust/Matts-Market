@@ -14,7 +14,7 @@ export async function initializeSchema(client) {
     `);
     console.log("✅ Table 'users' ensured.");
 
-    // Events (initially without winning_outcome FK to avoid circular dependency)
+    // Events (initially without winning_outcome FK to avoid circular dependency) Now with the winning_position to be stored as well (yes or no)
     await client.query(`
       CREATE TABLE IF NOT EXISTS events (
         event_id SERIAL PRIMARY KEY,
@@ -24,6 +24,7 @@ export async function initializeSchema(client) {
         end_time TIMESTAMPTZ NOT NULL,
         status VARCHAR(50) NOT NULL DEFAULT 'scheduled',
         winning_outcome_id INT,
+        winning_position VARCHAR(3),
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -35,9 +36,11 @@ export async function initializeSchema(client) {
         outcome_id SERIAL PRIMARY KEY,
         event_id INT NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
-        current_price DECIMAL(10, 4) DEFAULT 0.0000,
-        total_shares_outstanding INT DEFAULT 0,
-        pool_weight DECIMAL(12, 6),
+        current_yes_price DECIMAL(10,4) DEFAULT 0.5000,
+        current_no_price DECIMAL(10,4) DEFAULT 0.5000,
+        outstanding_yes_shares INT DEFAULT 100,
+        outstanding_no_shares INT DEFAULT 100,
+        total_shares_outstanding INT DEFAULT 200,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -82,8 +85,10 @@ export async function initializeSchema(client) {
         position_id SERIAL PRIMARY KEY,
         user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
         outcome_id INT NOT NULL REFERENCES outcomes(outcome_id) ON DELETE CASCADE,
+        position VARCHAR(3) NOT NULL CHECK(position in ('YES','NO')),
         shares_held INT NOT NULL DEFAULT 0,
-        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, position, outcome_id)
       );
     `);
     console.log("✅ Table 'wallet' ensured.");
