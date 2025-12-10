@@ -33,6 +33,8 @@ export function setupUserRoutes(app, dbClient) {
           w.position_id,
           w.shares_held,
           w.updated_at,
+          w.position,
+          o.outcome_id as outcome_id,
           o.name as outcome_name,
           o.current_yes_price,
           o.current_no_price,

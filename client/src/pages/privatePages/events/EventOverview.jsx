@@ -150,6 +150,7 @@ const EventOverview = () => {
                                         </Button>
                                     </div>
                                 </div>
+    
                             </Card>
                         ))}
                     </div>

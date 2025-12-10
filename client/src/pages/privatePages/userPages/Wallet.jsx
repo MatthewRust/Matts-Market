@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useParams, useNavigate } from "react-router-dom";
 
 const Wallet = () => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -84,7 +87,8 @@ const Wallet = () => {
                   
                   <div className="space-y-1">
                     <p><span className="font-medium">Shares Held:</span> {position.shares_held}</p>
-                    <p><span className="font-medium">Current Price:</span> ${position.current_price || '0.0000'}</p>
+                    <p><span className="font-medium">Current Price:</span> ${position.current_yes_price || '0.0000'}</p>
+                    <p><span className="font-medium">Current Position:</span> {position.position} </p>
                     <p><span className="font-medium">Event Status:</span> 
                       <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
                         position.event_status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -94,6 +98,12 @@ const Wallet = () => {
                         {position.event_status}
                       </span>
                     </p>
+                    <Button 
+                      className="flex-1" 
+                      variant="default"
+                      onClick={() => navigate(`/events/sellshares/${position.outcome_id}/${position.position}`)}>
+                        Sell
+                      </Button>
                   </div>
 
                   <div>
