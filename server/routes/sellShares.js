@@ -144,4 +144,50 @@ export function sellSharesAPI(app, db){
             res.status(500).json({ message: 'Failed to fetch position data' });
         }
     });
+
+    //this is the same as buy but for sell (wow)
+    app.post('/api/shares/grabSellPrice', async(req, res) => {
+        try {
+            const { outcomeId, shareQuantity, yesNo } = req.body;
+
+            if (!outcomeId || !shareQuantity || !yesNo) {
+                return res.status(400).json({ message: 'Missing required fields: outcomeId, shareQuantity, yesNo' });
+            }
+            if (shareQuantity <= 0) {
+                return res.status(400).json({ message: 'Share quantity must be greater than 0' });
+            }
+
+            //gets the outcome data init
+            const outcomeResult = await db.query(
+                'SELECT outstanding_yes_shares, outstanding_no_shares FROM outcomes WHERE outcome_id = $1',
+                [outcomeId]
+            );
+
+            if (outcomeResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Outcome not found' });
+            }
+
+            const outcome = outcomeResult.rows[0];
+            const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
+            const noSharesInt = parseInt(outcome.outstanding_no_shares);
+            const quantityInt = parseInt(shareQuantity);
+
+            //uses the LSMR function created to get the right prices ?
+            const tradeResult = calculateLMSRTrade(yesNo, yesSharesInt, noSharesInt, -quantityInt);
+            const saleProceeds = parseFloat(Math.abs(tradeResult.cost).toFixed(2));
+            const averagePricePerShare = parseFloat((saleProceeds / quantityInt).toFixed(4));
+
+            res.status(200).json({
+                saleProceeds,
+                averagePricePerShare,
+                shareQuantity: quantityInt,
+                newPriceYes: tradeResult.newPriceYes,
+                newPriceNo: tradeResult.newPriceNo
+            });
+
+        } catch(error) {
+            console.error("An error occurred calculating sell price: " + error);
+            res.status(500).json({ message: 'Failed to calculate price' });
+        }
+    });
 }
