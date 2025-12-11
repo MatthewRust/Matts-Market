@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "cron": "^4.4.0",
     "recharts": "^3.5.1",
     "sonner": "^2.0.7"
   }

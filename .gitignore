@@ -9,3 +9,5 @@ azurite/
 local.settings.json
 
 staticfiles/
+
+.github/

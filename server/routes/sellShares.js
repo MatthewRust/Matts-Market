@@ -1,53 +1,6 @@
+import { calculateLMSRTrade } from './calcLMSR.js'; //the calculation 
+
 export function sellSharesAPI(app, db){
-    // LMSR liquidity parameter
-    const b = 100;
-
-    // LMSR cost function
-    function costFunction(qYes, qNo) {
-        return b * Math.log(Math.exp(qYes / b) + Math.exp(qNo / b));
-    }
-
-    // Get marginal price of YES
-    function priceYes(qYes, qNo) {
-        const eYes = Math.exp(qYes / b);
-        const eNo = Math.exp(qNo / b);
-        return eYes / (eYes + eNo);
-    }
-
-    // Get marginal price of NO
-    function priceNo(qYes, qNo) {
-        return 1 - priceYes(qYes, qNo);
-    }
-
-    // Trade YES shares (delta > 0 for buy, < 0 for sell)
-    function tradeYes(currentYes, currentNo, deltaYes) {
-        const oldCost = costFunction(currentYes, currentNo);
-        const newCost = costFunction(currentYes + deltaYes, currentNo);
-        const cost = newCost - oldCost;
-
-        return {
-            cost,
-            newYesShares: currentYes + deltaYes,
-            newNoShares: currentNo,
-            newPriceYes: parseFloat(priceYes(currentYes + deltaYes, currentNo).toFixed(4)),
-            newPriceNo: parseFloat(priceNo(currentYes + deltaYes, currentNo).toFixed(4))
-        };
-    }
-
-    // Trade NO shares (delta > 0 for buy, < 0 for sell)
-    function tradeNo(currentYes, currentNo, deltaNo) {
-        const oldCost = costFunction(currentYes, currentNo);
-        const newCost = costFunction(currentYes, currentNo + deltaNo);
-        const cost = newCost - oldCost;
-
-        return {
-            cost,
-            newYesShares: currentYes,
-            newNoShares: currentNo + deltaNo,
-            newPriceYes: parseFloat(priceYes(currentYes, currentNo + deltaNo).toFixed(4)),
-            newPriceNo: parseFloat(priceNo(currentYes, currentNo + deltaNo).toFixed(4))
-        };
-    }
 
     app.post('/api/shares/sell', async(req, res) => {
         try{
@@ -104,9 +57,7 @@ export function sellSharesAPI(app, db){
                 const quantityInt = parseInt(shareQuantity);
 
                 // Use LMSR to calculate proceeds and new prices (negative delta for selling)
-                const tradeResult = yesNo === 'YES' 
-                    ? tradeYes(yesSharesInt, noSharesInt, -quantityInt)
-                    : tradeNo(yesSharesInt, noSharesInt, -quantityInt);
+                const tradeResult = calculateLMSRTrade(yesNo, yesSharesInt, noSharesInt, -quantityInt);
 
                 const saleProceeds = parseFloat(Math.abs(tradeResult.cost).toFixed(2));
 
