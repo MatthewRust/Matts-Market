@@ -1,4 +1,7 @@
+import { calculateLMSRTrade } from './calcLMSR.js';
+
 export function buySharesAPI(app, db) {
+
     app.post('/api/shares/buy', async(req, res) => {
         try {
             const { userId, shareQuantity, yesNo } = req.body;
@@ -42,8 +45,14 @@ export function buySharesAPI(app, db) {
                 }
 
                 const outcome = outcomeResult.rows[0];
-                const currentPrice = yesNo === 'YES' ? outcome.current_yes_price : outcome.current_no_price;
-                const totalCost = currentPrice * shareQuantity;
+                const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
+                const noSharesInt = parseInt(outcome.outstanding_no_shares);
+                const quantityInt = parseInt(shareQuantity);
+
+                // Use LMSR to calculate cost and new prices
+                const tradeResult = calculateLMSRTrade(yesNo, yesSharesInt, noSharesInt, quantityInt);
+
+                const totalCost = parseFloat(tradeResult.cost.toFixed(2));
 
                 // checks the users balance
                 if (userBalance < totalCost) {
@@ -55,29 +64,10 @@ export function buySharesAPI(app, db) {
                     });
                 }
 
-                // update whether its yes or no
-                const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
-                const noSharesInt = parseInt(outcome.outstanding_no_shares);
-                const totalSharesInt = parseInt(outcome.total_shares_outstanding);
-                const quantityInt = parseInt(shareQuantity);
-                
-                const newTotalShares = totalSharesInt + quantityInt;
-                let newYesShares = yesSharesInt;
-                let newNoShares = noSharesInt;
-                
-                if (yesNo === 'YES') {
-                    newYesShares += quantityInt;
-                } else {
-                    newNoShares += quantityInt;
-                }
-                
-                // price = shares / total_shares (ensures prices are between 0 and 1)
-                const newYesPrice = parseFloat((newYesShares / newTotalShares).toFixed(4));
-                const newNoPrice = parseFloat((newNoShares / newTotalShares).toFixed(4));
-                
+                // Update outcomes with LMSR calculated values
                 await db.query(
                     'UPDATE outcomes SET outstanding_yes_shares = $1, outstanding_no_shares = $2, total_shares_outstanding = $3, current_yes_price = $4, current_no_price = $5 WHERE outcome_id = $6',
-                    [newYesShares, newNoShares, newTotalShares, newYesPrice, newNoPrice, outcomeId]
+                    [tradeResult.newYesShares, tradeResult.newNoShares, tradeResult.newYesShares + tradeResult.newNoShares, tradeResult.newPriceYes, tradeResult.newPriceNo, outcomeId]
                 );
 
                 // some debugging stuff WILL REMOVE LATER ONCE IT WORKS
@@ -118,7 +108,7 @@ export function buySharesAPI(app, db) {
                 //add a new transaction in
                 await db.query(
                     'INSERT INTO transactions (user_id, outcome_id, type, position, share_count, price_per_share, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                    [userId, outcomeId, 'BUY', yesNo, shareQuantity, currentPrice, totalCost]
+                    [userId, outcomeId, 'BUY', yesNo, shareQuantity, (totalCost / shareQuantity).toFixed(4), totalCost]
                 );
 
                 //commit
@@ -163,6 +153,52 @@ export function buySharesAPI(app, db) {
         } catch(error) {
             console.error("An error occurred fetching outcome: " + error);
             res.status(500).json({ message: 'Failed to fetch outcome data' });
+        }
+    });
+
+    // ok this uses the calcLSMR function to get the right buy price 
+    app.post('/api/shares/grabBuyPrice', async(req, res) => {
+        try {
+            const { outcomeId, shareQuantity, yesNo } = req.body;
+
+            if (!outcomeId || !shareQuantity || !yesNo) {
+                return res.status(400).json({ message: 'Missing required fields: outcomeId, shareQuantity, yesNo' });
+            }
+            if (shareQuantity <= 0) {
+                return res.status(400).json({ message: 'Share quantity must be greater than 0' });
+            }
+
+            //gets the outcome data
+            const outcomeResult = await db.query(
+                'SELECT outstanding_yes_shares, outstanding_no_shares FROM outcomes WHERE outcome_id = $1',
+                [outcomeId]
+            );
+
+            if (outcomeResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Outcome not found' });
+            }
+
+            const outcome = outcomeResult.rows[0];
+            const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
+            const noSharesInt = parseInt(outcome.outstanding_no_shares);
+            const quantityInt = parseInt(shareQuantity);
+
+            // uses the made function?
+            const tradeResult = calculateLMSRTrade(yesNo, yesSharesInt, noSharesInt, quantityInt);
+            const totalCost = parseFloat(tradeResult.cost.toFixed(2));
+            const averagePricePerShare = parseFloat((totalCost / quantityInt).toFixed(4));
+
+            res.status(200).json({
+                totalCost,
+                averagePricePerShare,
+                shareQuantity: quantityInt,
+                newPriceYes: tradeResult.newPriceYes,
+                newPriceNo: tradeResult.newPriceNo
+            });
+
+        } catch(error) {
+            console.error("An error occurred calculating buy price: " + error);
+            res.status(500).json({ message: 'Failed to calculate price' });
         }
     });
 }

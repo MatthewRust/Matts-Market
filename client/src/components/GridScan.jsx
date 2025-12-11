@@ -4,7 +4,7 @@ import { Renderer, Program, Triangle, Mesh } from 'ogl';
 const GridScan = ({
   enableRainbow = false,
   gridColor = '#5227ff',
-  rippleIntensity = .3,
+  rippleIntensity = 5,
   gridSize = 15.0,
   gridThickness = 30.0,
   fadeDistance = 4,

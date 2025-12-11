@@ -16,6 +16,7 @@ const BuyShares = () => {
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
     const [success, setSuccess] = useState("");
+    const [calculatedPrice, setCalcPrice] = useState(null);
 
     useEffect(() => {
         if (outcomeID) {
@@ -48,15 +49,32 @@ const BuyShares = () => {
         }
     };
 
+    // does the same thing as in sell stocks 
+    useEffect(() => {
+        if (outcomeData && shareQuantity && shareQuantity > 0) {
+            calculatePrice();
+        } else {
+            setCalcPrice(null);
+        }
+    }, [shareQuantity, outcomeData]);
+
+    const calculatePrice = async () => { //grabs the buy price
+        try {
+            const response = await axios.post('http://localhost:8080/api/shares/grabBuyPrice', {
+                outcomeId: outcomeID,
+                shareQuantity: parseInt(shareQuantity),
+                yesNo
+            });
+            setCalcPrice(response.data);
+        } catch (error) {
+            console.error('Failed to calculate price:', error);
+            setCalcPrice(null);
+        }
+    };
+
     const calculateTotalCost = () => {
-        if (!outcomeData || !shareQuantity) return 0;
-        if (yesNo == 'YES'){
-            return (outcomeData.current_yes_price * shareQuantity).toFixed(2);
-        }
-        else{
-            return (outcomeData.current_no_price * shareQuantity).toFixed(2);
-        }
-        
+        if (!calculatedPrice) return 0;
+        return calculatedPrice.totalCost.toFixed(2);
     };
 
     const handlePurchase = async (e) => {
@@ -202,13 +220,25 @@ const BuyShares = () => {
                             {/* Cost Summary */}
                             <div className="border rounded-md p-4 space-y-2 bg-slate-50">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Price per share:</span>
+                                    <span className="text-muted-foreground">Current market price:</span>
                                     <span className="font-medium">${parseFloat(currentPrice).toFixed(4)}</span>
                                 </div>
+                                {calculatedPrice && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Average price per share:</span>
+                                        <span className="font-medium">${calculatedPrice.averagePricePerShare.toFixed(4)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Quantity:</span>
                                     <span className="font-medium">{shareQuantity || 0}</span>
                                 </div>
+                                {calculatedPrice && (
+                                    <div className="flex justify-between text-sm text-muted-foreground">
+                                        <span>New {yesNo} price after purchase:</span>
+                                        <span>${yesNo === 'YES' ? calculatedPrice.newPriceYes.toFixed(4) : calculatedPrice.newPriceNo.toFixed(4)}</span>
+                                    </div>
+                                )}
                                 <div className="border-t pt-2 flex justify-between">
                                     <span className="font-semibold">Total Cost:</span>
                                     <span className="text-xl font-bold text-green-600">

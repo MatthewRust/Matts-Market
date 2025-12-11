@@ -8,6 +8,10 @@ import { setupUserRoutes } from './routes/user.js';
 import { eventsAPI } from './routes/events.js';
 import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
+import { startCornelius } from './routes/cornelius.js';
+
+
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -40,6 +44,10 @@ async function setupDatabase() {
 
       //once connected make the db with the schema
       await initializeSchema(dbClient);
+      
+      // spins up C dog woof woof
+      startCornelius(dbClient);
+      
       return; //leave the retrie loop
       
     } catch (err) {
@@ -91,7 +99,8 @@ app.get('/api/data', async (req, res) => {
 
 app.get('/', (req, res) => {
     res.status(200).send('Node.js Server is Running!');
-});
+}); 
+
 
 // Start the server and connect to the database
 app.listen(PORT, () => {
@@ -101,3 +110,4 @@ app.listen(PORT, () => {
     process.exit(1);
   });
 });
+

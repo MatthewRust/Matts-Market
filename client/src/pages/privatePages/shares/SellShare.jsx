@@ -16,6 +16,7 @@ const SellShares = () => {
     const [loading, setLoading] = useState(true);
     const [selling, setSelling] = useState(false);
     const [success, setSuccess] = useState("");
+    const [calculatedPrice, setCalcPrice] = useState(null);
 
     useEffect(() => {
         if (outcomeID) {
@@ -58,10 +59,32 @@ const SellShares = () => {
         }
     };
 
+    // grabs the LSMR price from the backend
+    useEffect(() => {
+        if (positionData && shareQuantity && shareQuantity > 0) {
+            calculatePrice();
+        } else {
+            setCalcPrice(null);
+        }
+    }, [shareQuantity, positionData]);
+
+    const calculatePrice = async () => { //calls the grabSellPrice to show it to the user. better calculations init
+        try {
+            const response = await axios.post('http://localhost:8080/api/shares/grabSellPrice', {
+                outcomeId: outcomeID,
+                shareQuantity: parseInt(shareQuantity),
+                yesNo
+            });
+            setCalcdPrice(response.data);
+        } catch (error) {
+            console.error('Wasnt able to calculate the price ', error);
+            setCalcPrice(null);
+        }
+    };
+
     const calculateSaleProceeds = () => {
-        if (!positionData || !shareQuantity) return 0;
-        const currentPrice = yesNo === 'YES' ? parseFloat(positionData.current_yes_price) : parseFloat(positionData.current_no_price);
-        return parseFloat((currentPrice * shareQuantity).toFixed(2));
+        if (!calculatedPrice) return 0;
+        return calculatedPrice.saleProceeds;
     };
 
     const handleSell = async (e) => {
@@ -205,13 +228,25 @@ const SellShares = () => {
                             </div>
                             <div className="border rounded-md p-4 space-y-2 bg-slate-50">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Price Per Share:</span>
+                                    <span className="text-muted-foreground">Current market price:</span>
                                     <span className="font-medium">${yesNo === 'YES' ? parseFloat(positionData.current_yes_price).toFixed(4) : parseFloat(positionData.current_no_price).toFixed(4)}</span>
                                 </div>
+                                {calculatedPrice && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Average price per share:</span>
+                                        <span className="font-medium">${calculatedPrice.averagePricePerShare.toFixed(4)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Quantity:</span>
                                     <span className="font-medium">{shareQuantity || 0}</span>
                                 </div>
+                                {calculatedPrice && (
+                                    <div className="flex justify-between text-sm text-muted-foreground">
+                                        <span>New {yesNo} price after sale:</span>
+                                        <span>${yesNo === 'YES' ? calculatedPrice.newPriceYes.toFixed(4) : calculatedPrice.newPriceNo.toFixed(4)}</span>
+                                    </div>
+                                )}
                                 <div className="border-t pt-2 flex justify-between">
                                     <span className="font-semibold">Sale Proceeds:</span>
                                     <span className="text-xl font-bold text-blue-600">
