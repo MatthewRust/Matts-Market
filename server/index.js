@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
-//import cron from 'node-cron';
+import cron from 'node-cron';
 import 'dotenv/config'; // Loads .env file (though Docker will handle most in this setup)
 import { initializeSchema } from './db/schema.js';
 import { setupAuthRoutes } from './routes/auth.js';
@@ -9,6 +9,7 @@ import { setupUserRoutes } from './routes/user.js';
 import { eventsAPI } from './routes/events.js';
 import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
+import { startCornelius } from './routes/cornelius.js';
 
 
 
@@ -44,6 +45,10 @@ async function setupDatabase() {
 
       //once connected make the db with the schema
       await initializeSchema(dbClient);
+      
+      // spins up C dog woof woof
+      startCornelius(dbClient);
+      
       return; //leave the retrie loop
       
     } catch (err) {
@@ -95,11 +100,7 @@ app.get('/api/data', async (req, res) => {
 
 app.get('/', (req, res) => {
     res.status(200).send('Node.js Server is Running!');
-});
-
-//cron.schedule("*/10 * * * * *", function() {
-//  console.log("running every 10 seonds");
-//}) 
+}); 
 
 
 // Start the server and connect to the database

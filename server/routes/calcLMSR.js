@@ -1,7 +1,9 @@
 
 //this is the LMSR calculatoin for the cost
-const b = 5000;  //tracks the liquidity rate basically how many shares you sell before a re calc. think of it as the size of the step
+const b = 185;  //tracks the liquidity rate basically how many shares you sell before a re calc. think of it as the size of the step
 //this liquidity rate controls how extreme the prices swing. with the lower the rate the more extreme and so more likely the price will swing to 1 or 0 
+//dont touch the b tho bad number things happen and 185 is tuned to be right for the quantity of shares probably being traded. 
+//Guessing 400 shares buy on the high end and 100 on the low end. Chances are it will go higher
 function costFunction(qYes, qNo) { //this is where alot of the magic happens
     return b * Math.log(Math.exp(qYes / b) + Math.exp(qNo / b));
 }
