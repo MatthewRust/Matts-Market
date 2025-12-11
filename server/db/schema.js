@@ -9,7 +9,8 @@ export async function initializeSchema(client) {
         email VARCHAR(100) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         balance DECIMAL(12, 2) DEFAULT 0.00,
-        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        powerLevel VARCHAR(16) DEFAULT 'user'
       );
     `);
     console.log("✅ Table 'users' ensured.");
