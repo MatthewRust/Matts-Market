@@ -23,7 +23,7 @@ export function setupUserRoutes(app, dbClient) {
     }
   });
 
-  // Get user wallet/positions
+  // Get user wallet/positions added a few more fields to be grabbed from the db
   app.get('/api/wallet/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
@@ -33,8 +33,11 @@ export function setupUserRoutes(app, dbClient) {
           w.position_id,
           w.shares_held,
           w.updated_at,
+          w.position,
+          o.outcome_id as outcome_id,
           o.name as outcome_name,
-          o.current_price,
+          o.current_yes_price,
+          o.current_no_price,
           e.name as event_name,
           e.status as event_status
         FROM wallet w

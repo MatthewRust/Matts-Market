@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const SellShares = () => {
-    const { outcomeID } = useParams();
+    const { outcomeID, yesNo } = useParams();
     const navigate = useNavigate();
     const [positionData, setPositionData] = useState(null);
     const [userBalance, setUserBalance] = useState(0);
@@ -16,6 +16,7 @@ const SellShares = () => {
     const [loading, setLoading] = useState(true);
     const [selling, setSelling] = useState(false);
     const [success, setSuccess] = useState("");
+    const [calculatedPrice, setCalcPrice] = useState(null);
 
     useEffect(() => {
         if (outcomeID) {
@@ -58,9 +59,32 @@ const SellShares = () => {
         }
     };
 
+    // grabs the LSMR price from the backend
+    useEffect(() => {
+        if (positionData && shareQuantity && shareQuantity > 0) {
+            calculatePrice();
+        } else {
+            setCalcPrice(null);
+        }
+    }, [shareQuantity, positionData]);
+
+    const calculatePrice = async () => { //calls the grabSellPrice to show it to the user. better calculations init
+        try {
+            const response = await axios.post('http://localhost:8080/api/shares/grabSellPrice', {
+                outcomeId: outcomeID,
+                shareQuantity: parseInt(shareQuantity),
+                yesNo
+            });
+            setCalcdPrice(response.data);
+        } catch (error) {
+            console.error('Wasnt able to calculate the price ', error);
+            setCalcPrice(null);
+        }
+    };
+
     const calculateSaleProceeds = () => {
-        if (!positionData || !shareQuantity) return 0;
-        return Math.ceil(positionData.pool_weight * shareQuantity * 100) / 100;
+        if (!calculatedPrice) return 0;
+        return calculatedPrice.saleProceeds;
     };
 
     const handleSell = async (e) => {
@@ -88,7 +112,8 @@ const SellShares = () => {
             const response = await axios.post("http://localhost:8080/api/shares/sell", {
                 userId: userData.user_id,
                 outcomeId: outcomeID,
-                shareQuantity: parseInt(shareQuantity)
+                shareQuantity: parseInt(shareQuantity),
+                yesNo
             });
 
             setSuccess(`Successfully sold ${shareQuantity} shares for $${response.data.sale_proceeds.toFixed(2)}!`);
@@ -100,7 +125,7 @@ const SellShares = () => {
 
             //redirect the user after a few seconds
             setTimeout(() => {
-                navigate("/events");
+                navigate("/wallet");
             }, 2000);
 
         } catch (error) {
@@ -123,7 +148,7 @@ const SellShares = () => {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <p className="text-red-600 text-lg">{error}</p>
-                    <Button onClick={() => navigate('/events')}>Back to Events</Button>
+                    <Button onClick={() => navigate('/wallet')}>Back to Wallet</Button>
                 </div>
             </div>
         );
@@ -145,10 +170,10 @@ const SellShares = () => {
                 <div className="mb-6">
                     <Button 
                         variant="outline" 
-                        onClick={() => navigate('/events')}
+                        onClick={() => navigate('/wallet')}
                         className="mb-4"
                     >
-                        ← Back to Events
+                        ← Back to Wallet
                     </Button>
                     
                     <h1 className="text-3xl font-bold mb-2">Sell Shares</h1>
@@ -172,15 +197,15 @@ const SellShares = () => {
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Current Pool Weight</p>
+                                    <p className="text-sm text-muted-foreground">Position</p>
                                     <p className="text-2xl font-bold">
-                                        {(parseFloat(positionData.pool_weight) * 100).toFixed(2)}%
+                                        {yesNo}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Price Per Share</p>
                                     <p className="text-2xl font-bold">
-                                        ${parseFloat(positionData.current_price).toFixed(4)}
+                                        ${yesNo === 'YES' ? parseFloat(positionData.current_yes_price).toFixed(4) : parseFloat(positionData.current_no_price).toFixed(4)}
                                     </p>
                                 </div>
                             </div>
@@ -203,13 +228,25 @@ const SellShares = () => {
                             </div>
                             <div className="border rounded-md p-4 space-y-2 bg-slate-50">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Pool weight:</span>
-                                    <span className="font-medium">${parseFloat(positionData.pool_weight).toFixed(4)}</span>
+                                    <span className="text-muted-foreground">Current market price:</span>
+                                    <span className="font-medium">${yesNo === 'YES' ? parseFloat(positionData.current_yes_price).toFixed(4) : parseFloat(positionData.current_no_price).toFixed(4)}</span>
                                 </div>
+                                {calculatedPrice && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Average price per share:</span>
+                                        <span className="font-medium">${calculatedPrice.averagePricePerShare.toFixed(4)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Quantity:</span>
                                     <span className="font-medium">{shareQuantity || 0}</span>
                                 </div>
+                                {calculatedPrice && (
+                                    <div className="flex justify-between text-sm text-muted-foreground">
+                                        <span>New {yesNo} price after sale:</span>
+                                        <span>${yesNo === 'YES' ? calculatedPrice.newPriceYes.toFixed(4) : calculatedPrice.newPriceNo.toFixed(4)}</span>
+                                    </div>
+                                )}
                                 <div className="border-t pt-2 flex justify-between">
                                     <span className="font-semibold">Sale Proceeds:</span>
                                     <span className="text-xl font-bold text-blue-600">
@@ -256,7 +293,7 @@ const SellShares = () => {
                                 <Button 
                                     type="button" 
                                     variant="outline"
-                                    onClick={() => navigate('/events')}
+                                    onClick={() => navigate('/wallet')}
                                     className="flex-1"
                                 >
                                     Cancel

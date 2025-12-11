@@ -1,7 +1,10 @@
+import { calculateLMSRTrade } from './calcLMSR.js';
+
 export function buySharesAPI(app, db) {
+
     app.post('/api/shares/buy', async(req, res) => {
         try {
-            const { userId, shareQuantity } = req.body;
+            const { userId, shareQuantity, yesNo } = req.body;
             const outcomeId = parseInt(req.body.outcomeId);
 
             // Validate required fields
@@ -32,7 +35,7 @@ export function buySharesAPI(app, db) {
 
                 // Get outcome data
                 const outcomeResult = await db.query(
-                    'SELECT o.outcome_id, o.event_id, o.current_price, o.total_shares_outstanding, o.pool_weight, o.name FROM outcomes o WHERE o.outcome_id = $1',
+                    'SELECT o.outcome_id, o.event_id, o.current_yes_price, o.current_no_price, o.outstanding_yes_shares, o.outstanding_no_shares, o.total_shares_outstanding, o.name FROM outcomes o WHERE o.outcome_id = $1',
                     [outcomeId]
                 );
 
@@ -42,9 +45,16 @@ export function buySharesAPI(app, db) {
                 }
 
                 const outcome = outcomeResult.rows[0];
-                const totalCost = outcome.current_price * shareQuantity;
+                const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
+                const noSharesInt = parseInt(outcome.outstanding_no_shares);
+                const quantityInt = parseInt(shareQuantity);
 
-                // Check if user has enough balance
+                // Use LMSR to calculate cost and new prices
+                const tradeResult = calculateLMSRTrade(yesNo, yesSharesInt, noSharesInt, quantityInt);
+
+                const totalCost = parseFloat(tradeResult.cost.toFixed(2));
+
+                // checks the users balance
                 if (userBalance < totalCost) {
                     await db.query('ROLLBACK');
                     return res.status(400).json({ 
@@ -54,79 +64,54 @@ export function buySharesAPI(app, db) {
                     });
                 }
 
-                // Get all outcomes for this event to recalculate pool weights
-                const allOutcomesResult = await db.query(
-                    'SELECT outcome_id, total_shares_outstanding FROM outcomes WHERE event_id = $1',
-                    [outcome.event_id]
-                );
-
-                const allOutcomes = allOutcomesResult.rows;
-
-                // Update the bought outcome's shares first
-                const boughtOutcomeShares = parseInt(outcome.total_shares_outstanding) + parseInt(shareQuantity);
-                
-                // Calculate total shares across all outcomes
-                let totalEventShares = boughtOutcomeShares;
-                for (const o of allOutcomes) {
-                    if (o.outcome_id !== outcomeId) {
-                        totalEventShares += parseInt(o.total_shares_outstanding);
-                    }
-                }
-
-                // Update bought outcome
-                const boughtPoolWeight = boughtOutcomeShares / totalEventShares;
+                // Update outcomes with LMSR calculated values
                 await db.query(
-                    'UPDATE outcomes SET total_shares_outstanding = $1, pool_weight = $2, current_price = $3 WHERE outcome_id = $4',
-                    [boughtOutcomeShares, boughtPoolWeight, boughtPoolWeight, outcomeId]
+                    'UPDATE outcomes SET outstanding_yes_shares = $1, outstanding_no_shares = $2, total_shares_outstanding = $3, current_yes_price = $4, current_no_price = $5 WHERE outcome_id = $6',
+                    [tradeResult.newYesShares, tradeResult.newNoShares, tradeResult.newYesShares + tradeResult.newNoShares, tradeResult.newPriceYes, tradeResult.newPriceNo, outcomeId]
                 );
 
-                // Update all other outcomes with recalculated pool weights
-                for (const o of allOutcomes) {
-                    if (o.outcome_id !== outcomeId) {
-                        const outcomeShares = parseInt(o.total_shares_outstanding);
-                        const poolWeight = outcomeShares / totalEventShares;
-                        await db.query(
-                            'UPDATE outcomes SET pool_weight = $1, current_price = $2 WHERE outcome_id = $3',
-                            [poolWeight, poolWeight, o.outcome_id]
-                        );
-                    }
-                }
+                // some debugging stuff WILL REMOVE LATER ONCE IT WORKS
+                const verify = await db.query(
+                    'SELECT outstanding_yes_shares, outstanding_no_shares, total_shares_outstanding, current_yes_price, current_no_price FROM outcomes WHERE outcome_id = $1',
+                    [outcomeId]
+                );
+                console.log(verify.rows[0]);
 
-                // Add shares to user's wallet
+                //add shares to user wallet
                 const existingWalletResult = await db.query(
-                    'SELECT position_id, shares_held FROM wallet WHERE user_id = $1 AND outcome_id = $2',
-                    [userId, outcomeId]
+                    'SELECT position_id, shares_held FROM wallet WHERE user_id = $1 AND outcome_id = $2 AND position = $3',
+                    [userId, outcomeId, yesNo]
                 );
 
                 if (existingWalletResult.rows.length > 0) {
-                    // Update existing position
+                    //update the price with the new one
                     const newShares = parseInt(existingWalletResult.rows[0].shares_held) + parseInt(shareQuantity);
                     await db.query(
                         'UPDATE wallet SET shares_held = $1, updated_at = NOW() WHERE position_id = $2',
                         [newShares, existingWalletResult.rows[0].position_id]
                     );
                 } else {
-                    // Create new position
+                    //if no shares are already owned a new position is made 
                     await db.query(
-                        'INSERT INTO wallet (user_id, outcome_id, shares_held) VALUES ($1, $2, $3)',
-                        [userId, outcomeId, parseInt(shareQuantity)]
+                        'INSERT INTO wallet (user_id, outcome_id, position, shares_held) VALUES ($1, $2, $3, $4)',
+                        [userId, outcomeId, yesNo, parseInt(shareQuantity)]
                     );
                 }
 
-                // Deduct from user's balance
+                //take money from the user
                 const newBalance = userBalance - totalCost;
                 await db.query(
                     'UPDATE users SET balance = $1 WHERE user_id = $2',
                     [newBalance, userId]
                 );
 
-                // Record transaction
+                //add a new transaction in
                 await db.query(
-                    'INSERT INTO transactions (user_id, outcome_id, type, share_count, price_per_share, total_amount) VALUES ($1, $2, $3, $4, $5, $6)',
-                    [userId, outcomeId, 'BUY', shareQuantity, outcome.current_price, totalCost]
+                    'INSERT INTO transactions (user_id, outcome_id, type, position, share_count, price_per_share, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                    [userId, outcomeId, 'BUY', yesNo, shareQuantity, (totalCost / shareQuantity).toFixed(4), totalCost]
                 );
 
-                // Commit transaction
+                //commit
                 await db.query('COMMIT');
 
                 res.status(200).json({
@@ -153,7 +138,7 @@ export function buySharesAPI(app, db) {
             const { outcomeId } = req.params;
 
             const result = await db.query(
-                'SELECT o.outcome_id, o.name, o.current_price, o.total_shares_outstanding, o.pool_weight, e.event_id, e.name as event_name, e.description, e.start_time, e.end_time, e.status FROM outcomes o JOIN events e ON o.event_id = e.event_id WHERE o.outcome_id = $1',
+                'SELECT o.outcome_id, o.name, o.current_yes_price, o.current_no_price,o.outstanding_yes_shares, o.outstanding_no_shares, o.total_shares_outstanding, e.event_id, e.name as event_name, e.description, e.start_time, e.end_time, e.status FROM outcomes o JOIN events e ON o.event_id = e.event_id WHERE o.outcome_id = $1',
                 [outcomeId]
             );
 
@@ -168,6 +153,52 @@ export function buySharesAPI(app, db) {
         } catch(error) {
             console.error("An error occurred fetching outcome: " + error);
             res.status(500).json({ message: 'Failed to fetch outcome data' });
+        }
+    });
+
+    // ok this uses the calcLSMR function to get the right buy price 
+    app.post('/api/shares/grabBuyPrice', async(req, res) => {
+        try {
+            const { outcomeId, shareQuantity, yesNo } = req.body;
+
+            if (!outcomeId || !shareQuantity || !yesNo) {
+                return res.status(400).json({ message: 'Missing required fields: outcomeId, shareQuantity, yesNo' });
+            }
+            if (shareQuantity <= 0) {
+                return res.status(400).json({ message: 'Share quantity must be greater than 0' });
+            }
+
+            //gets the outcome data
+            const outcomeResult = await db.query(
+                'SELECT outstanding_yes_shares, outstanding_no_shares FROM outcomes WHERE outcome_id = $1',
+                [outcomeId]
+            );
+
+            if (outcomeResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Outcome not found' });
+            }
+
+            const outcome = outcomeResult.rows[0];
+            const yesSharesInt = parseInt(outcome.outstanding_yes_shares);
+            const noSharesInt = parseInt(outcome.outstanding_no_shares);
+            const quantityInt = parseInt(shareQuantity);
+
+            // uses the made function?
+            const tradeResult = calculateLMSRTrade(yesNo, yesSharesInt, noSharesInt, quantityInt);
+            const totalCost = parseFloat(tradeResult.cost.toFixed(2));
+            const averagePricePerShare = parseFloat((totalCost / quantityInt).toFixed(4));
+
+            res.status(200).json({
+                totalCost,
+                averagePricePerShare,
+                shareQuantity: quantityInt,
+                newPriceYes: tradeResult.newPriceYes,
+                newPriceNo: tradeResult.newPriceNo
+            });
+
+        } catch(error) {
+            console.error("An error occurred calculating buy price: " + error);
+            res.status(500).json({ message: 'Failed to calculate price' });
         }
     });
 }

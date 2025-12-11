@@ -8,6 +8,10 @@ import { setupUserRoutes } from './routes/user.js';
 import { eventsAPI } from './routes/events.js';
 import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
+import { startCornelius } from './routes/cornelius.js';
+
+
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -28,18 +32,38 @@ app.use(express.json());
 
 // Function to connect to DB and set up database schema
 async function setupDatabase() {
-  try {
-    await dbClient.connect();
-    console.log("✅ Successfully connected to PostgreSQL.");
 
-    // Initialize database schema from separate file
-    await initializeSchema(dbClient);
+  //changes to the connecting making sure the system retires when the first db connection fails
+  const max = 10;
+  let retries = 0;
+  
+  while (retries < max) {
+    try {
+      await dbClient.connect();
+      console.log("✅ successfully connected :)");
 
-  } catch (err) {
-    console.error("❌ Database connection error. Waiting for Postgres to be ready...", err.message);
-    // In a production app, you'd implement a proper retry loop here.
-    // Docker's depends_on helps, but doesn't guarantee the DB is fully ready.
+      //once connected make the db with the schema
+      await initializeSchema(dbClient);
+      
+      // spins up C dog woof woof
+      startCornelius(dbClient);
+      
+      return; //leave the retrie loop
+      
+    } catch (err) {
+      retries++;
+      console.error(`❌ Database connection error attempt ${retries}:`, err.message);
+      
+      if (retries < max) {
+        // wait for 2 seconds until the retrie is tried again
+        console.log(`retrieing in 2 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
   }
+  
+  //if we didnt get a connection after 10 attempts we give up
+  throw new Error("couldnt connect to the db after 10 attempts looser :(");
 }
 // Setup authentication routes
 setupAuthRoutes(app, dbClient);
@@ -75,10 +99,15 @@ app.get('/api/data', async (req, res) => {
 
 app.get('/', (req, res) => {
     res.status(200).send('Node.js Server is Running!');
-});
+}); 
+
 
 // Start the server and connect to the database
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
-  setupDatabase();
+  setupDatabase().catch(err => {
+    console.error("Fatal error during database setup:", err);
+    process.exit(1);
+  });
 });
+

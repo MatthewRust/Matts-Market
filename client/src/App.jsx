@@ -33,8 +33,8 @@ function App() {
               <Route path="/events" element={<AllEvents />} />
               <Route path="/events/:eventId" element={<EventOverview />} />
               <Route path="/events/makeevent" element={<MakeEvent/>} />
-              <Route path="/events/buyshares/:outcomeID" element={<BuyShares />} />
-              <Route path="/events/sellshares/:outcomeID" element={<SellShares />} />
+              <Route path="/events/buyshares/:outcomeID/:yesNo" element={<BuyShares />} />
+              <Route path="/events/sellshares/:outcomeID/:yesNo" element={<SellShares />} />
             </Routes>
           </Layout>
         </Router>

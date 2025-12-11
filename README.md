@@ -1,5 +1,7 @@
 ﻿# Matts-Market
 
-This is a prediction market that lets users make events with outcomes. Other users can then buy "shares" of these events for =< $1 with prices based on the number of shares sold for all outcomes giving a probability of what the user base believes will happen. 
-Doesn't use real money or anything just for fun so me and my pals can make bets on like nights out and trips away and such.
+Predict the future. Own the outcome.
+Welcome... to the shoddiest predication market in alllll the lands. Matts Market (so named after myself)
+Here users can create events with certain outcomes and other users can be on these outcomes taking place or not. If the users is right they get paid $1 for every share they own. If not... they loose it all. So come on in the waters warm and start betting on anything you feel like. Think your mates gonna go home before 7 - place a bet on it. Think you can eat 30 big macs in a row - place a bet on it. Think you will get an A on you exams - place. a. bet. on. it.
+
 

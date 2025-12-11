@@ -9,9 +9,10 @@ COPY package*.json ./
 RUN npm install && \
     chmod -R +x node_modules/.bin
 
-# Copy entrypoint script
+# Copy entrypoint script and fix line endings
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Copy the rest of the application code
 COPY . .

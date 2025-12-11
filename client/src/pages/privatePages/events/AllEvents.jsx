@@ -35,6 +35,13 @@ const AllEvents = () => {
     return (
         <div className="min-h-screen p-6">
             <div className="max-w-7xl mx-auto">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/')}
+                  className="mb-6"
+                >
+                  ← Home
+                </Button>
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-4">
                         <div>

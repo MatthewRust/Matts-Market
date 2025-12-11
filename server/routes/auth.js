@@ -11,10 +11,10 @@ export function setupAuthRoutes(app, dbClient) {
 
       // Simple password hash (in production, use bcrypt)
       const password_hash = password; // For now, just store plaintext
-
+      const startingBalance = 1000;
       const result = await dbClient.query(
-        'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING user_id, username, email',
-        [username, email, password_hash]
+        'INSERT INTO users (username, email, password_hash, balance) VALUES ($1, $2, $3, $4) RETURNING user_id, username, email',
+        [username, email, password_hash, startingBalance]
       );
 
       res.status(201).json({ 
