@@ -218,7 +218,7 @@ const BuyShares = () => {
                             </div>
 
                             {/* Cost Summary */}
-                            <div className="border rounded-md p-4 space-y-2 bg-slate-50">
+                            <div className="border rounded-md p-4 space-y-2 bg-card">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Current market price:</span>
                                     <span className="font-medium">${parseFloat(currentPrice).toFixed(4)}</span>
