@@ -116,10 +116,7 @@ const BuyShares = () => {
             localStorage.setItem("user", JSON.stringify(userData));
             await getOutcomeData();
 
-            // Redirect to events page after 2 seconds
-            setTimeout(() => {
-                navigate("/events");
-            }, 2000);
+            navigate("/events");
 
         } catch (error) {
             setError(error.response?.data?.message || "Failed to purchase shares");
@@ -180,14 +177,14 @@ const BuyShares = () => {
                     <Card className="p-6">
                         <div className="space-y-4">
                             <div>
-                                <h2 className="text-2xl font-bold text-green-600 mb-2">{outcomeData.name}</h2>
+                                <h2 className={`text-2xl font-bold mb-2 ${yesNo === 'NO' ? 'text-red-600' : 'text-green-600'}`}>{outcomeData.name}</h2>
                                 <p className="text-muted-foreground">{outcomeData.description}</p>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Price Per {yesNo} Share</p>
-                                    <p className="text-2xl font-bold text-green-600">
+                                    <p className={`text-2xl font-bold ${yesNo === 'NO' ? 'text-red-600' : 'text-green-600'}`}>
                                         ${parseFloat(currentPrice).toFixed(4)}
                                     </p>
                                 </div>
@@ -241,7 +238,7 @@ const BuyShares = () => {
                                 )}
                                 <div className="border-t pt-2 flex justify-between">
                                     <span className="font-semibold">Total Cost:</span>
-                                    <span className="text-xl font-bold text-green-600">
+                                    <span className="text-xl font-bold">
                                         ${totalCost}
                                     </span>
                                 </div>

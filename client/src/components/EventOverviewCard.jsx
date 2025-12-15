@@ -33,7 +33,7 @@ export const EventOverviewCard = ({event}) => {
         </div>
         
         <div className="space-y-3">
-            {event.outcomes?.map((outcome) => (
+            {event.outcomes?.slice(0, 2).map((outcome) => (
                 <div key={outcome.outcome_id} className="flex items-start justify-between gap-2 text-sm">
                     <span className="text-muted-foreground flex-1 min-w-0 break-words pr-2">{outcome.name}</span>
                     <div className="flex gap-2 shrink-0">

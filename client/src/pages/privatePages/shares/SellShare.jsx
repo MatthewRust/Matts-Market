@@ -123,10 +123,7 @@ const SellShares = () => {
             userData.balance = response.data.new_balance;
             localStorage.setItem("user", JSON.stringify(userData));
 
-            //redirect the user after a few seconds
-            setTimeout(() => {
-                navigate("/wallet");
-            }, 2000);
+            navigate("/wallet");
 
         } catch (error) {
             setError(error.response?.data?.message || "Failed to sell shares");
@@ -183,7 +180,7 @@ const SellShares = () => {
                     <Card className="p-6">
                         <div className="space-y-4">
                             <div>
-                                <h2 className="text-2xl font-bold text-blue-600 mb-2">{positionData.name}</h2>
+                                <h2 className="text-2xl font-bold text-primary">{positionData.name}</h2>
                                 <p className="text-muted-foreground">{positionData.event_name}</p>
                             </div>
                             
@@ -192,7 +189,7 @@ const SellShares = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Your Shares</p>
-                                    <p className="text-2xl font-bold text-blue-600">
+                                    <p className="text-2xl font-bold text-primary">
                                         {positionData.shares_held}
                                     </p>
                                 </div>
@@ -226,7 +223,7 @@ const SellShares = () => {
                                     required
                                 />
                             </div>
-                            <div className="border rounded-md p-4 space-y-2 bg-slate-50">
+                            <div className="border rounded-md p-4 space-y-2 bg-card">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Current market price:</span>
                                     <span className="font-medium">${yesNo === 'YES' ? parseFloat(positionData.current_yes_price).toFixed(4) : parseFloat(positionData.current_no_price).toFixed(4)}</span>
@@ -249,7 +246,7 @@ const SellShares = () => {
                                 )}
                                 <div className="border-t pt-2 flex justify-between">
                                     <span className="font-semibold">Sale Proceeds:</span>
-                                    <span className="text-xl font-bold text-blue-600">
+                                    <span className="text-xl font-bold text-primary">
                                         ${saleProceeds.toFixed(2)}
                                     </span>
                                 </div>
