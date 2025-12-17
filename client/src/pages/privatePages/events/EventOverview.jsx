@@ -139,13 +139,13 @@ const EventOverview = () => {
                                     
                                     <div className="flex space-x-2 pt-2">
                                         <Button 
-                                            className="flex-1" 
+                                            className="flex-1 bg-green-600 dark:bg-green-600 hover:bg-green-600/80 dark:hover:bg-green-600/80" 
                                             variant="default"
                                             onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}/YES`)}
                                         >
                                             Yes
                                         </Button>
-                                        <Button className="flex-1" variant="outline" onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}/NO`)}>
+                                        <Button className="flex-1 bg-red-600 dark:bg-red-600 hover:bg-red-600/80 dark:hover:bg-red-600/80 " variant="outline" onClick={() => navigate(`/events/buyshares/${outcome.outcome_id}/NO`)}>
                                             No
                                         </Button>
                                     </div>

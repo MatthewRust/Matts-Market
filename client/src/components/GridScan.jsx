@@ -4,7 +4,7 @@ import { Renderer, Program, Triangle, Mesh } from 'ogl';
 const GridScan = ({
   enableRainbow = false,
   gridColor = '#5227ff',
-  rippleIntensity = 5,
+  rippleIntensity = 2,
   gridSize = 15.0,
   gridThickness = 30.0,
   fadeDistance = 4,
@@ -85,20 +85,18 @@ void main() {
         uv = rotate(gridRotation * pi / 180.0) * uv;
     }
 
-    float dist = length(uv);
-    float func = sin(pi * (iTime - dist));
-    vec2 rippleUv = uv + uv * func * rippleIntensity;
-
+    // Calculate ripple center - defaults to origin, follows mouse when interaction is enabled
+    vec2 center = vec2(0.0);
     if (mouseInteraction && mouseInfluence > 0.0) {
         vec2 mouseUv = (mousePosition * 2.0 - 1.0);
         mouseUv.x *= iResolution.x / iResolution.y;
-        float mouseDist = length(uv - mouseUv);
-        
-        float influence = mouseInfluence * exp(-mouseDist * mouseDist / (mouseInteractionRadius * mouseInteractionRadius));
-        
-        float mouseWave = sin(pi * (iTime * 2.0 - mouseDist * 3.0)) * influence;
-        rippleUv += normalize(uv - mouseUv) * mouseWave * rippleIntensity * 1.0;
+        center = mix(vec2(0.0), mouseUv, mouseInfluence);
     }
+
+    vec2 offset = uv - center;
+    float dist = length(offset);
+    float func = sin(pi * (iTime - dist));
+    vec2 rippleUv = uv + offset * func * rippleIntensity;
 
     vec2 a = sin(gridSize * 0.5 * pi * rippleUv - pi / 2.0);
     vec2 b = abs(a);

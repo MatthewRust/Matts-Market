@@ -200,6 +200,10 @@ const MakeEvent = () => {
                                     + Add Outcome
                                 </Button>
                             </div>
+
+                            <p className="text-sm text-muted-foreground">
+                                Outcomes should be phrased in a way that provides a yes/no answer <br/> e.g. Manchester City to win or Over 2.5 Goals
+                            </p>
                             
                             <div className="space-y-3">
                                 {outcomes.map((outcome, index) => (
@@ -224,9 +228,6 @@ const MakeEvent = () => {
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                Add the possible outcomes for this prediction market (e.g., "Team A wins", "Team B wins", "Draw")
-                            </p>
                         </div>
 
                         {error && (
