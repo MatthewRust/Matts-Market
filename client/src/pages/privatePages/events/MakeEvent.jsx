@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "@/lib/api";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,7 +96,7 @@ const MakeEvent = () => {
                 outcomes: validOutcomes
             };
 
-            const response = await axios.post("http://localhost:8080/api/event/createEvent", requestData);
+            const response = await api.post("/event/createEvent", requestData);
             
             toast.success("Event created successfully!");
             navigate('/events')

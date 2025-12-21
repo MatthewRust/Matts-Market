@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -31,7 +31,7 @@ const EventOverview = () => {
 
     const getEventData = async (eventID) =>{
         try{
-            const eventResponse = await axios.get(`http://localhost:8080/api/event/showEventData/${eventID}`);
+            const eventResponse = await api.get(`/event/showEventData/${eventID}`);
             setEventData(eventResponse.data.position);
         } catch (error) {
             setError("The event was not able to be found");

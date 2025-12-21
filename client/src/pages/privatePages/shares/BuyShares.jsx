@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ const BuyShares = () => {
 
     const getOutcomeData = async () => {
         try {
-            const outcomeResponse = await axios.get(`http://localhost:8080/api/shares/outcome/${outcomeID}`);
+            const outcomeResponse = await api.get(`/shares/outcome/${outcomeID}`);
             setOutcomeData(outcomeResponse.data.outcome);
         } catch (error) {
             setError("The outcome couldn't be found");
@@ -41,7 +41,7 @@ const BuyShares = () => {
             const storedUser = localStorage.getItem("user");
             if (storedUser) {
                 const userData = JSON.parse(storedUser);
-                const userResponse = await axios.get(`http://localhost:8080/api/user/${userData.user_id}`);
+                const userResponse = await api.get(`/user/${userData.user_id}`);
                 setUserBalance(parseFloat(userResponse.data.user.balance));
             }
         } catch (error) {
@@ -60,7 +60,7 @@ const BuyShares = () => {
 
     const calculatePrice = async () => { //grabs the buy price
         try {
-            const response = await axios.post('http://localhost:8080/api/shares/grabBuyPrice', {
+            const response = await api.post('/shares/grabBuyPrice', {
                 outcomeId: outcomeID,
                 shareQuantity: parseInt(shareQuantity),
                 yesNo
@@ -101,7 +101,7 @@ const BuyShares = () => {
             const storedUser = localStorage.getItem("user");
             const userData = JSON.parse(storedUser);
 
-            const response = await axios.post("http://localhost:8080/api/shares/buy", {
+            const response = await api.post("/shares/buy", {
                 userId: userData.user_id,
                 outcomeId: outcomeID,
                 shareQuantity: parseInt(shareQuantity), 

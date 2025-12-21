@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "react-router-dom";
@@ -26,11 +26,11 @@ const Wallet = () => {
   const fetchUserData = async (userId) => {
     try {
       // Fetch fresh user data including current balance
-      const userResponse = await axios.get(`http://localhost:8080/api/user/${userId}`);
+      const userResponse = await api.get(`/user/${userId}`);
       setUser(userResponse.data.user);
       
       // Fetch wallet positions
-      const walletResponse = await axios.get(`http://localhost:8080/api/wallet/${userId}`);
+      const walletResponse = await api.get(`/wallet/${userId}`);
       setPositions(walletResponse.data.positions);
     } catch (error) {
       setError("Failed to load wallet data");

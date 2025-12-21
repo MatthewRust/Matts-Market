@@ -10,7 +10,7 @@ const isAuthPath = (url = "") =>
   /\/auth\/(login|register|refresh|logout)/.test(url);
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "https://untaxing-adina-peakless.ngrok-free.dev/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
   timeout: 5000, // 5 seconds timeout
