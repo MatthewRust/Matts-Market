@@ -83,6 +83,17 @@ async function setupDatabase() {
       // spins up C dog woof woof
       startCornelius(dbClient);
       
+      // Setup all routes after database connection is established
+      setupAuthRoutes(app, dbClient);
+      setupUserRoutes(app, dbClient);
+      eventsAPI(app, dbClient);
+      buySharesAPI(app, dbClient);
+      sellSharesAPI(app, dbClient);
+      setupAdminRoutes(app, dbClient);
+      setupGraphRoutes(app, dbClient);
+      
+      console.log("✅ All routes registered successfully");
+      
       return; //leave the retrie loop
       
     } catch (err) {
@@ -100,26 +111,6 @@ async function setupDatabase() {
   //if we didnt get a connection after 10 attempts we give up
   throw new Error("couldnt connect to the db after 10 attempts looser :(");
 }
-// Setup authentication routes
-setupAuthRoutes(app, dbClient);
-
-// Setup user routes
-setupUserRoutes(app, dbClient);
-
-// Setup events routes
-eventsAPI(app, dbClient);
-
-// Setup buy shares routes
-buySharesAPI(app, dbClient);
-
-// Setup sell shares routes
-sellSharesAPI(app, dbClient);
-
-// Setup admin routes
-setupAdminRoutes(app, dbClient);
-
-// Setup graph routes
-setupGraphRoutes(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {
