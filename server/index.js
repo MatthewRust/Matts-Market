@@ -55,6 +55,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
 // Function to connect to DB and set up database schema
 async function setupDatabase() {
 
