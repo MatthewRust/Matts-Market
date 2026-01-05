@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import OutcomeGraph from "@/components/OutcomeGraph";
 
 const EventOverview = () => {
     const { eventId } = useParams();
@@ -101,6 +102,13 @@ const EventOverview = () => {
                                 </div>
                             </div>
                         </div>
+                    </Card>
+                </div>
+                
+                <div className="mb-6">
+                    <Card className="p-6">
+                        <h2 className="text-2xl font-bold mb-4">Market Activity</h2>
+                        <OutcomeGraph eventId={eventId} />
                     </Card>
                 </div>
                 
