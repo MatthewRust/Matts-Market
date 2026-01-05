@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy package.json and install dependencies
 COPY package*.json ./
-RUN npm install && \
+RUN npm install --include=dev && \
     chmod -R +x node_modules/.bin
 
 # Copy entrypoint script and fix line endings

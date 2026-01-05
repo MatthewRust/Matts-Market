@@ -4,7 +4,7 @@ set -e
 # Ensure node_modules exists and has correct permissions
 if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/nodemon" ]; then
   echo "Installing dependencies..."
-  npm install
+  npm install --include=dev
 fi
 
 # Ensure execute permissions on node_modules binaries

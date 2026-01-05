@@ -27,7 +27,10 @@ const dbClient = new Client({
 });
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ 
+  origin: 'http://localhost:3000',
+  credentials: true 
+}));
 app.use(express.json());
 
 // Function to connect to DB and set up database schema

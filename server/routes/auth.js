@@ -13,8 +13,8 @@ export function setupAuthRoutes(app, dbClient) {
       const password_hash = password; // For now, just store plaintext
       const startingBalance = 1000;
       const result = await dbClient.query(
-        'INSERT INTO users (username, email, password_hash, balance) VALUES ($1, $2, $3, $4) RETURNING user_id, username, email',
-        [username, email, password_hash, startingBalance]
+        'INSERT INTO users (username, email, password_hash, balance, permission) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, username, email, permission',
+        [username, email, password_hash, startingBalance, 'user']
       );
 
       res.status(201).json({ 
@@ -41,7 +41,7 @@ export function setupAuthRoutes(app, dbClient) {
       }
 
       const result = await dbClient.query(
-        'SELECT user_id, username, email, balance FROM users WHERE username = $1 AND password_hash = $2',
+        'SELECT user_id, username, email, balance, permission FROM users WHERE username = $1 AND password_hash = $2',
         [username, password]
       );
 
@@ -57,6 +57,12 @@ export function setupAuthRoutes(app, dbClient) {
       console.error("Error during login:", error);
       res.status(500).json({ message: 'Login failed.' });
     }
+  });
+
+  // Token refresh endpoint
+  app.post('/api/auth/refresh', (req, res) => {
+    // For now, just return success - the frontend manages tokens in localStorage
+    res.status(200).json({ message: 'Token refreshed.' });
   });
 
 }
