@@ -55,11 +55,28 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Request logging middleware
+// Request logging middleware - AFTER CORS, BEFORE routes
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  const bodyStr = req.method !== 'GET' && req.body ? JSON.stringify(req.body).substring(0, 100) : '';
+  console.log(`${req.method} ${req.path} ${bodyStr} | Origin: ${req.headers.origin || 'none'}`);
   next();
 });
+
+// CORS preflight handler - must be before routes
+app.options('*', cors({ 
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Health check endpoint (doesn't require database)
 app.get('/health', (req, res) => {
