@@ -57,6 +57,14 @@ export default function OutcomeGraph({ eventId }) {
         }
       });
 
+      const formatLabel = (ts) =>
+        new Date(ts).toLocaleTimeString([], {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+
       //builds the cumulative share outcomes starting at 100 since all outcomes start with 100 shares
       const cumulativeShares = {};
       const allYesData = {};
@@ -68,7 +76,7 @@ export default function OutcomeGraph({ eventId }) {
       });
 
       const datasets = [];
-      const labels = [""]; // initial point for starting shares
+      const labels = [formatLabel(transactions[0].created_at)]; // initial point for starting shares
 
       transactions.forEach((transaction) => {
         const outcomeId = transaction.outcome_id;
@@ -84,10 +92,20 @@ export default function OutcomeGraph({ eventId }) {
         }
 
         //add new data points to the graph
-        labels.push("");
+        labels.push(formatLabel(transaction.created_at));
+
+        // push data points: update traded outcome; carry forward others
         Object.keys(outcomeMap).forEach((id) => {
-          allYesData[id].push(cumulativeShares[id].YES);
-          allNoData[id].push(cumulativeShares[id].NO);
+          const lastYes = allYesData[id][allYesData[id].length - 1];
+          const lastNo = allNoData[id][allNoData[id].length - 1];
+
+          if (id === String(outcomeId)) {
+            allYesData[id].push(cumulativeShares[id].YES);
+            allNoData[id].push(cumulativeShares[id].NO);
+          } else {
+            allYesData[id].push(lastYes);
+            allNoData[id].push(lastNo);
+          }
         });
       });
 
