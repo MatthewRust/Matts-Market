@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post(`${getApiUrl()}/login`, {
+      const response = await api.post("/login", {
         username: formData.username,
         password: formData.password
       });
