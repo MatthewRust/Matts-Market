@@ -1,6 +1,7 @@
 {
   "name": "node-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Node.js Express backend with PostgreSQL",
   "main": "index.js",
   "scripts": {

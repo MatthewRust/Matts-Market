@@ -18,15 +18,19 @@ import { setupGraphRoutes } from './routes/graphs.js';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// PostgreSQL Client Setup
-const { Client } = pg;
-const dbClient = new Client({
-  host: process.env.PGHOST,       // 'postgres' - service name in docker-compose
-  user: process.env.PGUSER,       // 'myuser'
-  password: process.env.PGPASSWORD, // 'mysupersecretpassword'
-  database: process.env.PGDATABASE, // 'appdb'
-  port: 5432,
-});
+// Function to create a new PostgreSQL client
+function createDbClient() {
+  const { Client } = pg;
+  return new Client({
+    host: process.env.PGHOST,
+    user: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    port: process.env.PGPORT || 5432,
+  });
+}
+
+let dbClient = null;
 
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGIN 
@@ -59,8 +63,12 @@ async function setupDatabase() {
   let retries = 0;
   
   while (retries < max) {
-    try {
-      await dbClient.connect();
+    try {      // Create fresh client for this attempt
+      if (dbClient) {
+        try { await dbClient.end(); } catch (e) { /* ignore */ }
+      }
+      dbClient = createDbClient();
+            await dbClient.connect();
       console.log("✅ successfully connected :)");
 
       //once connected make the db with the schema

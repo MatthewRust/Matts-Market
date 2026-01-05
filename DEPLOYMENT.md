@@ -51,16 +51,25 @@ This guide explains how to deploy Matt's Market to Render.com with PostgreSQL da
    ```
    NODE_ENV=production
    PORT=8080
-   PGHOST=<your-postgres-internal-host>
+   PGHOST=dpg-xxxxx-a
    PGUSER=myuser
-   PGPASSWORD=<your-postgres-password>
+   PGPASSWORD=your-password-here
    PGDATABASE=appdb
    PGPORT=5432
    CORS_ORIGIN=https://matts-market.onrender.com
    ```
    
-   **CRITICAL**: 
-   - Get `PGHOST`, `PGPASSWORD` from your PostgreSQL dashboard (use **Internal Database URL** components)
+   **CRITICAL - Getting Database Values**: 
+   1. Go to your PostgreSQL service dashboard
+   2. Find "Internal Database URL" - it looks like:  
+      `postgresql://myuser:PASSWORD@dpg-xxxxx-a/appdb_xxxx`
+   3. Extract the parts:
+      - `PGHOST` = hostname part ONLY: `dpg-xxxxx-a` (between `@` and `/`)
+      - `PGUSER` = username: `myuser` (after `://` before `:`)
+      - `PGPASSWORD` = password (between `:` and `@`)
+      - `PGDATABASE` = database name: `appdb_xxxx` (after last `/`)
+   4. **DO NOT** paste the full URL into PGHOST - extract hostname only!
+   
    - `CORS_ORIGIN` must match your frontend URL EXACTLY (no trailing slash)
    - For multiple origins, use comma-separated: `https://matts-market.onrender.com,https://www.matts-market.com`
    - After deploying frontend, come back and update `CORS_ORIGIN` with the actual frontend URL
