@@ -10,6 +10,7 @@ import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
 import { startCornelius } from './routes/cornelius.js';
 import { setupAdminRoutes } from './routes/adminAPIs.js';
+import { setupGraphRoutes } from './routes/graphs.js';
 
 
 
@@ -28,9 +29,25 @@ const dbClient = new Client({
 });
 
 // Middleware
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:3000'];
+
 app.use(cors({ 
-  origin: 'http://localhost:3000',
-  credentials: true 
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
@@ -86,6 +103,9 @@ sellSharesAPI(app, dbClient);
 
 // Setup admin routes
 setupAdminRoutes(app, dbClient);
+
+// Setup graph routes
+setupGraphRoutes(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {

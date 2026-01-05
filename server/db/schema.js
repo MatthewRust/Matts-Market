@@ -95,6 +95,15 @@ export async function initializeSchema(client) {
     `);
     console.log("✅ Table 'wallet' ensured.");
 
+    // Seed default admin user (idempotent)
+    await client.query(
+      `INSERT INTO users (username, email, password_hash, balance, permission)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (username) DO NOTHING;`,
+      ['admin', 'admin@example.com', 'admin', 10000000, 'admin']
+    );
+    console.log("✅ Default admin user ensured (username: admin / password: admin).");
+
     console.log("✅ Database schema initialized successfully.");
   } catch (error) {
     console.error("❌ Error initializing database schema:", error.message);
