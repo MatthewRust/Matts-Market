@@ -43,9 +43,9 @@ export function setupUserRoutes(app, dbClient) {
         FROM wallet w
         JOIN outcomes o ON w.outcome_id = o.outcome_id
         JOIN events e ON o.event_id = e.event_id
-        WHERE w.user_id = $1
+        WHERE w.user_id = $1 AND e.status = $2
         ORDER BY w.updated_at DESC
-      `, [userId]);
+      `, [userId, 'active']);
 
       res.status(200).json({
         positions: result.rows

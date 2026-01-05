@@ -2,7 +2,8 @@ export function eventsAPI(app, db){
     app.get('/api/event/showEvents', async(req, res) => {
         try{
             const eventsResult = await db.query(
-                'SELECT event_id, name, description, start_time, end_time, status FROM events ORDER BY start_time DESC'
+                'SELECT event_id, name, description, start_time, end_time, status FROM events WHERE status = $1 ORDER BY start_time DESC',
+                ['active']
             );
             
             const outcomesResult = await db.query(

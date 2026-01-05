@@ -9,6 +9,7 @@ export async function initializeSchema(client) {
         email VARCHAR(100) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         balance DECIMAL(12, 2) DEFAULT 0.00,
+        permission VARCHAR(10) DEFAULT 'user' CHECK(permission IN ('user', 'admin')),
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);

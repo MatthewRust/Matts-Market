@@ -9,6 +9,7 @@ import { eventsAPI } from './routes/events.js';
 import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
 import { startCornelius } from './routes/cornelius.js';
+import { setupAdminRoutes } from './routes/adminAPIs.js';
 
 
 
@@ -27,7 +28,10 @@ const dbClient = new Client({
 });
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ 
+  origin: 'http://localhost:3000',
+  credentials: true 
+}));
 app.use(express.json());
 
 // Function to connect to DB and set up database schema
@@ -79,6 +83,9 @@ buySharesAPI(app, dbClient);
 
 // Setup sell shares routes
 sellSharesAPI(app, dbClient);
+
+// Setup admin routes
+setupAdminRoutes(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {
