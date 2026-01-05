@@ -61,6 +61,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint (doesn't require database)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/', (req, res) => {
+  res.status(200).send('Node.js Server is Running!');
+});
+
 // Function to connect to DB and set up database schema
 async function setupDatabase() {
 
@@ -84,13 +93,27 @@ async function setupDatabase() {
       startCornelius(dbClient);
       
       // Setup all routes after database connection is established
+      console.log("📝 Registering routes...");
       setupAuthRoutes(app, dbClient);
+      console.log("  ✅ Auth routes registered");
       setupUserRoutes(app, dbClient);
+      console.log("  ✅ User routes registered");
       eventsAPI(app, dbClient);
+      console.log("  ✅ Events routes registered");
       buySharesAPI(app, dbClient);
+      console.log("  ✅ Buy shares routes registered");
       sellSharesAPI(app, dbClient);
+      console.log("  ✅ Sell shares routes registered");
       setupAdminRoutes(app, dbClient);
+      console.log("  ✅ Admin routes registered");
       setupGraphRoutes(app, dbClient);
+      console.log("  ✅ Graph routes registered");
+      
+      // Add 404 handler for unmatched routes
+      app.use((req, res) => {
+        console.log(`⚠️  404 Not Found: ${req.method} ${req.path}`);
+        res.status(404).json({ message: 'Route not found' });
+      });
       
       console.log("✅ All routes registered successfully");
       
@@ -112,34 +135,15 @@ async function setupDatabase() {
   throw new Error("couldnt connect to the db after 10 attempts looser :(");
 }
 
-// API Routes
-app.get('/api/data', async (req, res) => {
-  try {
-    if (!dbClient._connected) {
-      return res.status(503).json({ message: 'Database connection not ready.' });
-    }
-    const result = await dbClient.query('SELECT text, created_at FROM messages ORDER BY created_at DESC LIMIT 1');
-    res.status(200).json({ 
-        message: result.rows.length > 0 ? result.rows[0].text : 'No messages found.',
-        timestamp: result.rows.length > 0 ? result.rows[0].created_at : null
-    });
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    res.status(500).json({ error: 'Failed to fetch data.' });
-  }
-});
-
-app.get('/', (req, res) => {
-    res.status(200).send('Node.js Server is Running!');
-}); 
-
-
 // Start the server and connect to the database
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server listening on port ${PORT}`);
-  setupDatabase().catch(err => {
+  try {
+    await setupDatabase();
+    console.log('✅ Server fully initialized and ready');
+  } catch (err) {
     console.error("Fatal error during database setup:", err);
     process.exit(1);
-  });
+  }
 });
 
