@@ -59,7 +59,7 @@ export default function AdminEventDecision() {
   };
 
   const handleSubmit = async () => {
-    // Check if all outcomes have decisions
+    //needs all the outcomes to have a decision
     const allDecided = outcomes.every((outcome) => decisions[outcome.outcome_id]);
     
     if (!allDecided) {
@@ -71,7 +71,7 @@ export default function AdminEventDecision() {
     setError("");
 
     try {
-      // Submit decision for each outcome
+      //submit the decisions
       const promises = outcomes.map((outcome) =>
         axios.post("http://localhost:8080/api/admin/decide-outcome", {
           user_id: user.user_id,
@@ -82,13 +82,11 @@ export default function AdminEventDecision() {
 
       await Promise.all(promises);
 
-      // Update event status to completed
+      //update the status of the event to complete
       await axios.post("http://localhost:8080/api/admin/complete-event", {
         user_id: user.user_id,
         event_id: parseInt(eventId),
       });
-
-      // Navigate back to admin dashboard
       navigate("/admin/decisions");
     } catch (error) {
       setError("Failed to submit decisions. Please try again.");

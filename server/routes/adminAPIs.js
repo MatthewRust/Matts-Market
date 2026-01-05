@@ -64,7 +64,7 @@ export function setupAdminRoutes(app, dbClient) {
     }
   });
 
-  // Decide outcome and payout winners
+  //this api is for deciding the outcomes and paying out the users
   app.post('/api/admin/decide-outcome', requireAdmin, async (req, res) => {
     try {
       const { outcome_id, winning_position } = req.body;
@@ -77,10 +77,9 @@ export function setupAdminRoutes(app, dbClient) {
         return res.status(400).json({ message: 'winning_position must be YES or NO.' });
       }
 
-      // Start database transaction
       await dbClient.query('BEGIN');
 
-      // Get the event_id for this outcome
+      //grabs the events id and name for the results
       const outcomeResult = await dbClient.query(
         'SELECT event_id, name FROM outcomes WHERE outcome_id = $1',
         [outcome_id]
@@ -94,7 +93,7 @@ export function setupAdminRoutes(app, dbClient) {
       const event_id = outcomeResult.rows[0].event_id;
       const outcome_name = outcomeResult.rows[0].name;
 
-      // Get all users with winning shares
+      //gets all the users with the winning shares so that we can then run through the winners and pay them accordingly
       const winnersResult = await dbClient.query(
         'SELECT user_id, shares_held FROM wallet WHERE outcome_id = $1 AND position = $2 AND shares_held > 0',
         [outcome_id, winning_position]
@@ -103,18 +102,18 @@ export function setupAdminRoutes(app, dbClient) {
       const winners = winnersResult.rows;
       let totalPayout = 0;
 
-      // Payout each winner ($1 per share)
+      //pay every item in the winner array
       for (const winner of winners) {
         const payout = winner.shares_held * 1.0; // $1 per share
         totalPayout += payout;
 
-        // Update user balance
+        // update the users balance
         await dbClient.query(
           'UPDATE users SET balance = balance + $1 WHERE user_id = $2',
           [payout, winner.user_id]
         );
 
-        // Log payout transaction
+        //log the transaction in the transaction table 
         await dbClient.query(
           `INSERT INTO transactions 
            (user_id, outcome_id, type, position, share_count, price_per_share, total_amount) 
@@ -129,7 +128,6 @@ export function setupAdminRoutes(app, dbClient) {
         [outcome_id, winning_position, 'resolved', event_id]
       );
 
-      // Commit transaction
       await dbClient.query('COMMIT');
 
       res.status(200).json({
@@ -148,7 +146,7 @@ export function setupAdminRoutes(app, dbClient) {
     }
   });
 
-  // Mark event as completed after all outcomes decided
+  //make the events completed when called
   app.post('/api/admin/complete-event', requireAdmin, async (req, res) => {
     try {
       const { event_id } = req.body;
@@ -157,7 +155,7 @@ export function setupAdminRoutes(app, dbClient) {
         return res.status(400).json({ message: 'event_id is required.' });
       }
 
-      // Update event status to completed
+      //updated the status of the event to completed
       await dbClient.query(
         'UPDATE events SET status = $1 WHERE event_id = $2',
         ['completed', event_id]
