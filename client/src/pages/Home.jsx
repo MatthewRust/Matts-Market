@@ -51,6 +51,15 @@ const Home = () => {
             >
               Make Event
             </Button>
+            {user.permission === "admin" && (
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/20 hover:text-white transition-colors rounded-full px-4"
+                onClick={() => navigate("/admin/decisions")}
+              >
+                Admin Dashboard
+              </Button>
+            )}
           </div>
           
           <div className="w-px h-6 bg-white/20" />
