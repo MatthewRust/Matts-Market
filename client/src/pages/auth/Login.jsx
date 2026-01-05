@@ -28,7 +28,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:8080/api/login", {
+      const response = await axios.post(`${getApiUrl()}/login`, {
         username: formData.username,
         password: formData.password
       });

@@ -11,6 +11,7 @@ import {
   Legend,
 } from "chart.js";
 import axios from "axios";
+import { getApiUrl } from "@/lib/apiUrl";
 
 //chart js being registered
 ChartJS.register(
@@ -36,7 +37,7 @@ export default function OutcomeGraph({ eventId }) {
   const fetchTransactionData = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/graph/event-transactions/${eventId}`
+        `${getApiUrl()}/graph/event-transactions/${eventId}`
       );
       const transactions = response.data.transactions;
 

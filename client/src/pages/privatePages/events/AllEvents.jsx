@@ -4,6 +4,7 @@ import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EventOverviewCard } from "@/components/EventOverviewCard";
+import { getApiUrl } from "@/lib/apiUrl";
 
 const AllEvents = () => {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const AllEvents = () => {
 
     const getEventsData = async () => {
         try{
-            const eventResponse = await axios.get("http://localhost:8080/api/event/showEvents");
+            const eventResponse = await axios.get(`${getApiUrl()}/event/showEvents`);
             setEvents(eventResponse.data.events);
         } catch(error){
             setError("The events where not able to fetched")

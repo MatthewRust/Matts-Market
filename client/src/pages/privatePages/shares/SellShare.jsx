@@ -4,6 +4,7 @@ import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getApiUrl } from "@/lib/apiUrl";
 import { Label } from "@/components/ui/label";
 
 const SellShares = () => {
@@ -30,7 +31,7 @@ const SellShares = () => {
             const storedUser = localStorage.getItem("user");
             if (storedUser) {
                 const userData = JSON.parse(storedUser);
-                const positionResponse = await axios.get(`http://localhost:8080/api/shares/userposition/${userData.user_id}/${outcomeID}`);
+                const positionResponse = await axios.get(`${getApiUrl()}/shares/userposition/${userData.user_id}/${outcomeID}`);
                 setPositionData(positionResponse.data.position);
             } else {
                 setError("Please log in to sell shares");
@@ -51,7 +52,7 @@ const SellShares = () => {
             const storedUser = localStorage.getItem("user");
             if (storedUser) {
                 const userData = JSON.parse(storedUser);
-                const userResponse = await axios.get(`http://localhost:8080/api/user/${userData.user_id}`);
+                const userResponse = await axios.get(`${getApiUrl()}/user/${userData.user_id}`);
                 setUserBalance(parseFloat(userResponse.data.user.balance));
             }
         } catch (error) {
@@ -70,7 +71,7 @@ const SellShares = () => {
 
     const calculatePrice = async () => { //calls the grabSellPrice to show it to the user. better calculations init
         try {
-            const response = await axios.post('http://localhost:8080/api/shares/grabSellPrice', {
+            const response = await axios.post(`${getApiUrl()}/shares/grabSellPrice`, {
                 outcomeId: outcomeID,
                 shareQuantity: parseInt(shareQuantity),
                 yesNo
@@ -109,7 +110,7 @@ const SellShares = () => {
             const storedUser = localStorage.getItem("user");
             const userData = JSON.parse(storedUser);
 
-            const response = await axios.post("http://localhost:8080/api/shares/sell", {
+            const response = await axios.post(`${getApiUrl()}/shares/sell`, {
                 userId: userData.user_id,
                 outcomeId: outcomeID,
                 shareQuantity: parseInt(shareQuantity),

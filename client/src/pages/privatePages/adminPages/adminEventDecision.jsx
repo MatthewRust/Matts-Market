@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import axios from "axios";
+import { getApiUrl } from "@/lib/apiUrl";
 
 export default function AdminEventDecision() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function AdminEventDecision() {
   const fetchEventDetails = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/admin/pending-events?user_id=${user.user_id}`
+        `${getApiUrl()}/admin/pending-events?user_id=${user.user_id}`
       );
       const foundEvent = response.data.events.find(
         (e) => e.event_id === parseInt(eventId)
@@ -73,7 +74,7 @@ export default function AdminEventDecision() {
     try {
       //submit the decisions
       const promises = outcomes.map((outcome) =>
-        axios.post("http://localhost:8080/api/admin/decide-outcome", {
+        axios.post(`${getApiUrl()}/admin/decide-outcome`, {
           user_id: user.user_id,
           outcome_id: outcome.outcome_id,
           winning_position: decisions[outcome.outcome_id],
@@ -83,7 +84,7 @@ export default function AdminEventDecision() {
       await Promise.all(promises);
 
       //update the status of the event to complete
-      await axios.post("http://localhost:8080/api/admin/complete-event", {
+      await axios.post(`${getApiUrl()}/admin/complete-event`, {
         user_id: user.user_id,
         event_id: parseInt(eventId),
       });

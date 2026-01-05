@@ -29,7 +29,7 @@ const Register = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:8080/api/register", {
+      const response = await axios.post(`${getApiUrl()}/register`, {
         username: formData.username,
         email: formData.email,
         password: formData.password

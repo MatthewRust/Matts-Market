@@ -4,6 +4,7 @@ import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import OutcomeGraph from "@/components/OutcomeGraph";
+import { getApiUrl } from "@/lib/apiUrl";
 
 const EventOverview = () => {
     const { eventId } = useParams();
@@ -32,7 +33,7 @@ const EventOverview = () => {
 
     const getEventData = async (eventID) =>{
         try{
-            const eventResponse = await axios.get(`http://localhost:8080/api/event/showEventData/${eventID}`);
+            const eventResponse = await axios.get(`${getApiUrl()}/event/showEventData/${eventID}`);
             setEventData(eventResponse.data.position);
         } catch (error) {
             setError("The event was not able to be found");

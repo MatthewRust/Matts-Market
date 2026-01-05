@@ -15,6 +15,8 @@ const formatDateTime = (date) => {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+import { getApiUrl } from "@/lib/apiUrl";
+
 const MakeEvent = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -96,7 +98,7 @@ const MakeEvent = () => {
                 outcomes: validOutcomes
             };
 
-            const response = await axios.post("http://localhost:8080/api/event/createEvent", requestData);
+            const response = await axios.post(`${getApiUrl()}/event/createEvent`, requestData);
             
             toast.success("Event created successfully!");
             navigate('/events')

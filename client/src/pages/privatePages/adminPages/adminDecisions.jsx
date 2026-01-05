@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import axios from "axios";
+import { getApiUrl } from "@/lib/apiUrl";
 
 export default function AdminDecisions() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function AdminDecisions() {
   const fetchPendingEvents = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/admin/pending-events?user_id=${user.user_id}`
+        `${getApiUrl()}/admin/pending-events?user_id=${user.user_id}`
       );
       setEvents(response.data.events);
     } catch (error) {
