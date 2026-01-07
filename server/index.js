@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
-import 'dotenv/config'; // Loads .env file (though Docker will handle most in this setup)
+import 'dotenv/config'; // Loads .env file 
 import { initializeSchema } from './db/schema.js';
 import { setupAuthRoutes } from './routes/auth.js';
 import { setupUserRoutes } from './routes/user.js';

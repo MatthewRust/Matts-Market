@@ -1,4 +1,4 @@
-// Admin API routes
+// Admin api routes
 export function setupAdminRoutes(app, dbClient) {
   
   //for checking the users permissions to see if they are an admin or nah.
