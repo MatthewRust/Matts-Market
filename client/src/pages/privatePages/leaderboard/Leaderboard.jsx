@@ -53,7 +53,7 @@ const Leaderboard = () => {
 								</div>
 								{players.map((p, idx) => (
 									<div
-										key={p.user_id ?? p.username ?? idx}
+										key={p.username ?? idx}
 										className="grid grid-cols-12 px-3 py-3 items-center border-b hover:bg-muted/40"
 									>
 										<div className="col-span-2 font-medium">#{idx + 1}</div>
