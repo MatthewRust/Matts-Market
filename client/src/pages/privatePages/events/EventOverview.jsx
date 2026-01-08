@@ -11,10 +11,12 @@ const EventOverview = () => {
     const [eventData, setEventData] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+    const [totalCost, setTotalCost] = useState(0);
 
     useEffect(() => {
         if (eventId) {
             getEventData(eventId);
+            getTotalCost(eventId);
         }
     }, [eventId]);
 
@@ -22,6 +24,7 @@ const EventOverview = () => {
     useEffect(() => {
         const handleFocus = () => {
             if (eventId) {
+                getTotalCost(eventId);
                 getEventData(eventId);
             }
         };
@@ -40,6 +43,15 @@ const EventOverview = () => {
             setLoading(false);
         }
     };
+
+    const getTotalCost = async (eventID) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/event/showTLV/${eventID}`);
+            setTotalCost(parseFloat(response.data.total_spent));
+        } catch(error) {
+            setError("The total cost could not be retrived")
+        }
+    }
 
     if (loading) {
         return (
@@ -107,6 +119,8 @@ const EventOverview = () => {
                 
                 <div className="mb-6">
                     <Card className="p-6">
+                        <h2 className="text-2xl font-bold mb-4">Total Locked in Money</h2>
+                        <p className="text-3xl font-bold text-green-600 mb-6">${totalCost.toFixed(2)}</p>
                         <h2 className="text-2xl font-bold mb-4">Market Activity</h2>
                         <OutcomeGraph eventId={eventId} />
                     </Card>

@@ -10,6 +10,7 @@ import { buySharesAPI } from './routes/buyShares.js';
 import { sellSharesAPI } from './routes/sellShares.js';
 import { startCornelius } from './routes/cornelius.js';
 import { setupAdminRoutes } from './routes/adminAPIs.js';
+import { setupGraphRoutes } from './routes/graph.js';
 
 
 
@@ -86,6 +87,9 @@ sellSharesAPI(app, dbClient);
 
 // Setup admin routes
 setupAdminRoutes(app, dbClient);
+
+// Setup graph routes
+setupGraphRoutes(app, dbClient);
 
 // API Routes
 app.get('/api/data', async (req, res) => {
