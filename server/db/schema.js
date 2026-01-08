@@ -26,7 +26,9 @@ export async function initializeSchema(client) {
         status VARCHAR(50) NOT NULL DEFAULT 'scheduled',
         winning_outcome_id INT,
         winning_position VARCHAR(3),
-        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        scope VARCHAR(10) NOT NULL,
+        code INT
       );
     `);
     console.log("✅ Table 'events' ensured.");
