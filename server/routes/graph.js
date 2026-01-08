@@ -1,5 +1,5 @@
 // Graph data API routes
-export function setupGraphRoutes(app, dbClient) {
+export function setupGraphRoutes(app, db) {
   
   // Get transaction history for a specific event
   app.get('/api/graph/event-transactions/:eventId', async (req, res) => {
@@ -7,7 +7,7 @@ export function setupGraphRoutes(app, dbClient) {
       const { eventId } = req.params;
 
       // Get all transactions for outcomes belonging to this event
-      const result = await dbClient.query(`
+      const result = await db.query(`
         SELECT 
           t.transaction_id,
           t.user_id,
@@ -44,7 +44,7 @@ export function setupGraphRoutes(app, dbClient) {
     try {
       const { outcomeId } = req.params;
 
-      const result = await dbClient.query(`
+      const result = await db.query(`
         SELECT 
           t.transaction_id,
           t.user_id,

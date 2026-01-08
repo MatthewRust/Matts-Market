@@ -1,5 +1,5 @@
 // Admin api routes
-export function setupAdminRoutes(app, dbClient) {
+export function setupAdminRoutes(app, db) {
   
   //for checking the users permissions to see if they are an admin or nah.
   const requireAdmin = async (req, res, next) => {
@@ -10,7 +10,7 @@ export function setupAdminRoutes(app, dbClient) {
         return res.status(401).json({ message: 'User authentication required.' });
       }
 
-      const result = await dbClient.query(
+      const result = await db.query(
         'SELECT permission FROM users WHERE user_id = $1',
         [userId]
       );
@@ -30,7 +30,7 @@ export function setupAdminRoutes(app, dbClient) {
   app.get('/api/admin/pending-events', requireAdmin, async (req, res) => {
     try {
       // Get all events with status 'pending' along with their outcomes
-      const eventsResult = await dbClient.query(`
+      const eventsResult = await db.query(`
         SELECT 
           e.event_id,
           e.name AS event_name,
@@ -77,16 +77,16 @@ export function setupAdminRoutes(app, dbClient) {
         return res.status(400).json({ message: 'winning_position must be YES or NO.' });
       }
 
-      await dbClient.query('BEGIN');
+      await db.query('BEGIN');
 
       //grabs the events id and name for the results
-      const outcomeResult = await dbClient.query(
+      const outcomeResult = await db.query(
         'SELECT event_id, name FROM outcomes WHERE outcome_id = $1',
         [outcome_id]
       );
 
       if (outcomeResult.rows.length === 0) {
-        await dbClient.query('ROLLBACK');
+        await db.query('ROLLBACK');
         return res.status(404).json({ message: 'Outcome not found.' });
       }
 
@@ -94,7 +94,7 @@ export function setupAdminRoutes(app, dbClient) {
       const outcome_name = outcomeResult.rows[0].name;
 
       //gets all the users with the winning shares so that we can then run through the winners and pay them accordingly
-      const winnersResult = await dbClient.query(
+      const winnersResult = await db.query(
         'SELECT user_id, shares_held FROM wallet WHERE outcome_id = $1 AND position = $2 AND shares_held > 0',
         [outcome_id, winning_position]
       );
@@ -108,13 +108,13 @@ export function setupAdminRoutes(app, dbClient) {
         totalPayout += payout;
 
         // update the users balance
-        await dbClient.query(
+        await db.query(
           'UPDATE users SET balance = balance + $1 WHERE user_id = $2',
           [payout, winner.user_id]
         );
 
         //log the transaction in the transaction table 
-        await dbClient.query(
+        await db.query(
           `INSERT INTO transactions 
            (user_id, outcome_id, type, position, share_count, price_per_share, total_amount) 
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -123,12 +123,12 @@ export function setupAdminRoutes(app, dbClient) {
       }
 
       // Update event with winning outcome
-      await dbClient.query(
+      await db.query(
         'UPDATE events SET winning_outcome_id = $1, winning_position = $2, status = $3 WHERE event_id = $4',
         [outcome_id, winning_position, 'resolved', event_id]
       );
 
-      await dbClient.query('COMMIT');
+      await db.query('COMMIT');
 
       res.status(200).json({
         message: 'Outcome decided and payouts completed.',
@@ -140,7 +140,7 @@ export function setupAdminRoutes(app, dbClient) {
       });
 
     } catch (error) {
-      await dbClient.query('ROLLBACK');
+      await db.query('ROLLBACK');
       console.error("Error deciding outcome:", error);
       res.status(500).json({ message: 'Failed to decide outcome and process payouts.' });
     }
@@ -156,7 +156,7 @@ export function setupAdminRoutes(app, dbClient) {
       }
 
       //updated the status of the event to completed
-      await dbClient.query(
+      await db.query(
         'UPDATE events SET status = $1 WHERE event_id = $2',
         ['completed', event_id]
       );

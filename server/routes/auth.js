@@ -1,5 +1,5 @@
 // Authentication API routes
-export function setupAuthRoutes(app, dbClient) {
+export function setupAuthRoutes(app, db) {
   // User registration
   app.post('/api/register', async (req, res) => {
     try {
@@ -12,7 +12,7 @@ export function setupAuthRoutes(app, dbClient) {
       // Simple password hash (in production, use bcrypt)
       const password_hash = password; // For now, just store plaintext
       const startingBalance = 1000;
-      const result = await dbClient.query(
+      const result = await db.query(
         'INSERT INTO users (username, email, password_hash, balance, permission) VALUES ($1, $2, $3, $4, $5) RETURNING user_id, username, email, permission',
         [username, email, password_hash, startingBalance, 'user']
       );
@@ -40,7 +40,7 @@ export function setupAuthRoutes(app, dbClient) {
         return res.status(400).json({ message: 'Username and password are required.' });
       }
 
-      const result = await dbClient.query(
+      const result = await db.query(
         'SELECT user_id, username, email, balance, permission FROM users WHERE username = $1 AND password_hash = $2',
         [username, password]
       );

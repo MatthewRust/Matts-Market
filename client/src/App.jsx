@@ -18,6 +18,7 @@ import BuyShares from "./pages/privatePages/shares/BuyShares";
 import SellShares from "./pages/privatePages/shares/SellShare";
 import AdminDecisions from "./pages/privatePages/adminPages/adminDecisions";
 import AdminEventDecision from "./pages/privatePages/adminPages/adminEventDecision";
+import Leaderboard from "./pages/privatePages/leaderboard/Leaderboard";
 
 
 
@@ -39,6 +40,7 @@ function App() {
               <Route path="/events/sellshares/:outcomeID/:yesNo" element={<SellShares />} />
               <Route path="/admin/decisions" element={<AdminDecisions />} />
               <Route path="/admin/decisions/:eventId" element={<AdminEventDecision />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
             </Routes>
           </Layout>
         </Router>

@@ -1,11 +1,11 @@
 // User API routes
-export function setupUserRoutes(app, dbClient) {
+export function setupUserRoutes(app, db) {
   // Get user data
   app.get('/api/user/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
 
-      const result = await dbClient.query(
+      const result = await db.query(
         'SELECT user_id, username, email, balance FROM users WHERE user_id = $1',
         [userId]
       );
@@ -28,7 +28,7 @@ export function setupUserRoutes(app, dbClient) {
     try {
       const { userId } = req.params;
 
-      const result = await dbClient.query(`
+      const result = await db.query(`
         SELECT 
           w.position_id,
           w.shares_held,

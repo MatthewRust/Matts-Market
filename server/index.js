@@ -11,6 +11,7 @@ import { sellSharesAPI } from './routes/sellShares.js';
 import { startCornelius } from './routes/cornelius.js';
 import { setupAdminRoutes } from './routes/adminAPIs.js';
 import { setupGraphRoutes } from './routes/graph.js';
+import { leaderboardAPI } from './routes/leaderboard.js';
 
 
 
@@ -20,7 +21,7 @@ const PORT = process.env.PORT || 8080;
 
 // PostgreSQL Client Setup
 const { Client } = pg;
-const dbClient = new Client({
+const db = new Client({
   host: process.env.PGHOST,       // 'postgres' - service name in docker-compose
   user: process.env.PGUSER,       // 'myuser'
   password: process.env.PGPASSWORD, // 'mysupersecretpassword'
@@ -44,14 +45,14 @@ async function setupDatabase() {
   
   while (retries < max) {
     try {
-      await dbClient.connect();
+      await db.connect();
       console.log("✅ successfully connected :)");
 
       //once connected make the db with the schema
-      await initializeSchema(dbClient);
+      await initializeSchema(db);
       
       // spins up C dog woof woof
-      startCornelius(dbClient);
+      startCornelius(db);
       
       return; //leave the retrie loop
       
@@ -71,33 +72,36 @@ async function setupDatabase() {
   throw new Error("couldnt connect to the db after 10 attempts looser :(");
 }
 // Setup authentication routes
-setupAuthRoutes(app, dbClient);
+setupAuthRoutes(app, db);
 
 // Setup user routes
-setupUserRoutes(app, dbClient);
+setupUserRoutes(app, db);
 
 // Setup events routes
-eventsAPI(app, dbClient);
+eventsAPI(app, db);
 
 // Setup buy shares routes
-buySharesAPI(app, dbClient);
+buySharesAPI(app, db);
 
 // Setup sell shares routes
-sellSharesAPI(app, dbClient);
+sellSharesAPI(app, db);
 
 // Setup admin routes
-setupAdminRoutes(app, dbClient);
+setupAdminRoutes(app, db);
 
 // Setup graph routes
-setupGraphRoutes(app, dbClient);
+setupGraphRoutes(app, db);
+
+//leaderboard api 
+leaderboardAPI(app, db);
 
 // API Routes
 app.get('/api/data', async (req, res) => {
   try {
-    if (!dbClient._connected) {
+    if (!db._connected) {
       return res.status(503).json({ message: 'Database connection not ready.' });
     }
-    const result = await dbClient.query('SELECT text, created_at FROM messages ORDER BY created_at DESC LIMIT 1');
+    const result = await db.query('SELECT text, created_at FROM messages ORDER BY created_at DESC LIMIT 1');
     res.status(200).json({ 
         message: result.rows.length > 0 ? result.rows[0].text : 'No messages found.',
         timestamp: result.rows.length > 0 ? result.rows[0].created_at : null
