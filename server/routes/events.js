@@ -51,6 +51,29 @@ export function eventsAPI(app, db){
             res.status(500).json({ message: 'failed to fetch this events data'})
         }
     });
+    
+    app.get('/api/event/showTLV/:eventID', async(req, res) => {
+        const {eventID} = req.params;
+        const TLV = await db.query( //Ok this the the query to get the TLV or Total Locked in Value this tells us how much money is currently in an event
+            `SELECT 
+            SUM(
+                CASE 
+                    WHEN t.type = 'BUY' THEN t.total_amount   
+                    WHEN t.type = 'SELL' THEN -t.total_amount
+                    ELSE 0 
+                END) AS total_money_in_event
+            FROM 
+                transactions t
+            JOIN 
+                outcomes o ON t.outcome_id = o.outcome_id
+            JOIN 
+                events e ON o.event_id = e.event_id
+            WHERE 
+                e.event_id = $1
+            GROUP BY 
+                e.event_id, e.name;`,[eventID]);
+        res.status(200).json({ event_id:eventID, total_spent: parseFloat(TLV.rows[0].total_money_in_event).toFixed(2)});
+    });
 
     //creating a new event with outcomes
     app.post('/api/event/createEvent', async(req, res) => {

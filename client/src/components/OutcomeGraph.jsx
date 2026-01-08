@@ -94,7 +94,7 @@ export default function OutcomeGraph({ eventId }) {
         //add new data points to the graph
         labels.push(formatLabel(transaction.created_at));
 
-        // push data points: update traded outcome; carry forward others
+        //this adds new data to the graph then pushes all the other items in the graph along by 1
         Object.keys(outcomeMap).forEach((id) => {
           const lastYes = allYesData[id][allYesData[id].length - 1];
           const lastNo = allNoData[id][allNoData[id].length - 1];
@@ -159,7 +159,7 @@ export default function OutcomeGraph({ eventId }) {
     );
   }
 
-  if (!chartData || chartData.datasets.length === 0) {
+  if (!chartData || chartData.datasets.length === 0) { //just the message if no one has made transactions
     return (
       <div className="flex items-center justify-center p-6">
         <p className="text-muted-foreground">No transactions yet. Start trading!</p>
